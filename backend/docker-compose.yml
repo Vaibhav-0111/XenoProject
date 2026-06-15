@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: xenoreach-postgres
+    environment:
+      POSTGRES_DB: xenoreach
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - xenoreach_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  channel-simulator:
+    build: ./channel-simulator
+    container_name: xenoreach-channel-simulator
+    environment:
+      CRM_CORE_URL: http://crm-core:8080
+      SIM_MIN_DELAY_SECONDS: 1
+      SIM_MAX_DELAY_SECONDS: 10
+      SIM_FAILURE_RATE: 0.05
+      SIM_OPEN_RATE: 0.65
+      SIM_CLICK_RATE: 0.35
+      SIM_CONVERSION_RATE: 0.20
+    ports:
+      - "8081:8081"
+
+  crm-core:
+    build: ./crm-core
+    container_name: xenoreach-crm-core
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/xenoreach
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      JWT_SECRET: change-this-super-secret-key-min-32-chars-long-please
+      ALLOWED_ORIGINS: http://localhost:3000
+      CHANNEL_SIMULATOR_URL: http://channel-simulator:8081
+      AI_PROVIDER: mock
+      FIREBASE_ENABLED: "false"
+    ports:
+      - "8080:8080"
+
+volumes:
+  xenoreach_pgdata:
