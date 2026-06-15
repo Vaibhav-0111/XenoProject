@@ -12,12 +12,10 @@ interface MotionButtonProps extends Omit<HTMLMotionProps<"button">, "children"> 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
     "relative overflow-hidden bg-foreground text-background hover:bg-foreground/95 shadow-[0_8px_24px_-12px_oklch(0.72_0.16_270/0.6)]",
-  ghost:
-    "bg-transparent text-foreground hover:bg-secondary/60",
+  ghost: "bg-transparent text-foreground hover:bg-secondary/60",
   outline:
     "border border-border/70 text-foreground hover:border-foreground/40 hover:bg-secondary/30",
-  subtle:
-    "bg-secondary/60 text-foreground hover:bg-secondary",
+  subtle: "bg-secondary/60 text-foreground hover:bg-secondary",
 };
 
 /**

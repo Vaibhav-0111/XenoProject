@@ -8,7 +8,8 @@
  */
 
 const API_BASE_URL: string =
-  (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_BASE_URL) ||
+  (typeof import.meta !== "undefined" &&
+    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL) ||
   "http://localhost:8080";
 
 const TOKEN_KEY = "xenoreach_token";
@@ -104,8 +105,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       clearToken();
     }
     const message =
-      (data && (data.message as string)) ||
-      `Request failed with status ${response.status}`;
+      (data && (data.message as string)) || `Request failed with status ${response.status}`;
     throw new ApiError(message, response.status, data?.fieldErrors);
   }
 

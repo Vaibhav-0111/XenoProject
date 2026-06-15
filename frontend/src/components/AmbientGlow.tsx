@@ -14,7 +14,10 @@ export function AmbientGlow({ className = "" }: { className?: string }) {
   ];
 
   return (
-    <div aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}>
+    <div
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`}
+    >
       {blobs.map((b, i) => (
         <motion.div
           key={i}

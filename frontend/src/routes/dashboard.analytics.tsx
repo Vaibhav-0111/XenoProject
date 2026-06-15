@@ -49,12 +49,18 @@ function Analytics() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Performance</div>
+          <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            Performance
+          </div>
           <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">
-            {isCampaignView && data && "campaignName" in data ? data.campaignName : "Analytics Center"}
+            {isCampaignView && data && "campaignName" in data
+              ? data.campaignName
+              : "Analytics Center"}
           </h1>
           {isCampaignView && data && "channel" in data && (
-            <p className="mt-1 text-sm text-muted-foreground">{data.channel} · {data.status}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {data.channel} · {data.status}
+            </p>
           )}
         </div>
         {campaigns && campaigns.content.length > 0 && (
@@ -70,7 +76,9 @@ function Analytics() {
           >
             <option value="">All campaigns (overview)</option>
             {campaigns.content.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
         )}
@@ -85,7 +93,9 @@ function Analytics() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {isLoading
-          ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
+          ? Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-2xl" />
+            ))
           : funnel.map((f, i) => (
               <motion.div
                 key={f.stage}
@@ -95,7 +105,9 @@ function Analytics() {
                 className="rounded-2xl glass p-4"
               >
                 <div className="text-xs text-muted-foreground">{f.stage}</div>
-                <div className="mt-2 font-display text-2xl font-semibold tabular-nums">{f.value.toLocaleString()}</div>
+                <div className="mt-2 font-display text-2xl font-semibold tabular-nums">
+                  {f.value.toLocaleString()}
+                </div>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-secondary">
                   <motion.div
                     initial={{ width: 0 }}
@@ -114,7 +126,8 @@ function Analytics() {
           <BarChart3 className="h-6 w-6 text-muted-foreground" />
           <div className="mt-3 text-sm font-medium">No communications sent yet</div>
           <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-            Launch a campaign from the Campaign Studio to start seeing delivery, open and click data here.
+            Launch a campaign from the Campaign Studio to start seeing delivery, open and click data
+            here.
           </p>
         </div>
       )}
@@ -152,13 +165,25 @@ function Analytics() {
               ) : (
                 <div className="mt-4 space-y-4">
                   {data.channelPerformance.map((c, i) => (
-                    <motion.div key={c.channel} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                    <motion.div
+                      key={c.channel}
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                    >
                       <div className="flex items-center justify-between text-xs">
                         <span>{c.channel}</span>
-                        <span className="text-muted-foreground tabular-nums">{c.openRate}% open</span>
+                        <span className="text-muted-foreground tabular-nums">
+                          {c.openRate}% open
+                        </span>
                       </div>
                       <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, c.openRate)}%` }} transition={{ delay: 0.2 }} className="h-full bg-cyan" />
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${Math.min(100, c.openRate)}%` }}
+                          transition={{ delay: 0.2 }}
+                          className="h-full bg-cyan"
+                        />
                       </div>
                     </motion.div>
                   ))}
@@ -183,7 +208,10 @@ function Analytics() {
                     <span className="text-muted-foreground tabular-nums">{r.value}%</span>
                   </div>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-secondary">
-                    <div className="h-full bg-aurora" style={{ width: `${Math.min(100, r.value)}%` }} />
+                    <div
+                      className="h-full bg-aurora"
+                      style={{ width: `${Math.min(100, r.value)}%` }}
+                    />
                   </div>
                 </div>
               ))}

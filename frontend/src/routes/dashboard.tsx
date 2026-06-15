@@ -93,7 +93,9 @@ function DashboardLayout() {
           </motion.div>
           <div className="leading-tight">
             <div className="font-display text-sm font-semibold tracking-tight">XenoReach</div>
-            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">AI Marketing OS</div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+              AI Marketing OS
+            </div>
           </div>
         </div>
 
@@ -118,7 +120,9 @@ function DashboardLayout() {
                   />
                 )}
                 <Magnetic strength={8} className="grid place-items-center">
-                  <n.icon className={`h-4 w-4 transition-transform duration-300 group-hover:scale-110 ${active ? "text-cyan" : ""}`} />
+                  <n.icon
+                    className={`h-4 w-4 transition-transform duration-300 group-hover:scale-110 ${active ? "text-cyan" : ""}`}
+                  />
                 </Magnetic>
                 {n.label}
               </Link>
@@ -153,7 +157,9 @@ function DashboardLayout() {
               {initials || "?"}
             </div>
             <div className="text-xs">
-              <div className="max-w-[120px] truncate font-medium leading-none">{user?.name || user?.email}</div>
+              <div className="max-w-[120px] truncate font-medium leading-none">
+                {user?.name || user?.email}
+              </div>
               <div className="text-muted-foreground">{user?.role || "Marketer"}</div>
             </div>
             <button

@@ -40,12 +40,42 @@ function Overview() {
 
   const stats = data
     ? [
-        { label: "Total Customers", value: data.totalCustomers, prefix: "", suffix: "", icon: Users },
-        { label: "Total Revenue", value: data.totalRevenue, prefix: "₹", suffix: "", icon: DollarSign },
-        { label: "Running Campaigns", value: data.runningCampaigns, prefix: "", suffix: "", icon: Activity },
+        {
+          label: "Total Customers",
+          value: data.totalCustomers,
+          prefix: "",
+          suffix: "",
+          icon: Users,
+        },
+        {
+          label: "Total Revenue",
+          value: data.totalRevenue,
+          prefix: "₹",
+          suffix: "",
+          icon: DollarSign,
+        },
+        {
+          label: "Running Campaigns",
+          value: data.runningCampaigns,
+          prefix: "",
+          suffix: "",
+          icon: Activity,
+        },
         { label: "Open Rate", value: data.openRate, prefix: "", suffix: "%", icon: MailCheck },
-        { label: "Click Rate", value: data.clickRate, prefix: "", suffix: "%", icon: MousePointerClick },
-        { label: "Conversion", value: data.conversionRate, prefix: "", suffix: "%", icon: TrendingUp },
+        {
+          label: "Click Rate",
+          value: data.clickRate,
+          prefix: "",
+          suffix: "%",
+          icon: MousePointerClick,
+        },
+        {
+          label: "Conversion",
+          value: data.conversionRate,
+          prefix: "",
+          suffix: "%",
+          icon: TrendingUp,
+        },
       ]
     : [];
 
@@ -114,7 +144,12 @@ function Overview() {
                     </div>
                   </div>
                   <div className="mt-3 font-display text-2xl font-medium tracking-[-0.02em]">
-                    <AnimatedNumber value={s.value} prefix={s.prefix} suffix={s.suffix} decimals={s.suffix === "%" ? 1 : 0} />
+                    <AnimatedNumber
+                      value={s.value}
+                      prefix={s.prefix}
+                      suffix={s.suffix}
+                      decimals={s.suffix === "%" ? 1 : 0}
+                    />
                   </div>
                   <div className="mt-1 text-[11px] text-muted-foreground">{s.label}</div>
                 </MotionCard>
@@ -133,7 +168,9 @@ function Overview() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-display text-lg font-semibold">Channel performance</h3>
-              <p className="text-xs text-muted-foreground">Open & click-through by channel, across all campaigns</p>
+              <p className="text-xs text-muted-foreground">
+                Open & click-through by channel, across all campaigns
+              </p>
             </div>
           </div>
           <div className="mt-6">
@@ -148,7 +185,11 @@ function Overview() {
                 icon={Inbox}
                 title="No channel activity yet"
                 description="Launch your first campaign to see delivery and open-rate performance by channel here."
-                action={<Link to="/dashboard/campaigns"><MotionButton variant="outline">Create a campaign</MotionButton></Link>}
+                action={
+                  <Link to="/dashboard/campaigns">
+                    <MotionButton variant="outline">Create a campaign</MotionButton>
+                  </Link>
+                }
               />
             ) : (
               <div className="space-y-4">
@@ -169,32 +210,41 @@ function Overview() {
         >
           <div className="flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan animate-pulse" />
-            <h3 className="font-display text-sm font-semibold uppercase tracking-wider">AI Insights</h3>
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider">
+              AI Insights
+            </h3>
           </div>
           <div className="mt-5 space-y-3">
-            {isLoading ? (
-              Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)
-            ) : (
-              buildInsights(data).map((it, i) => (
-                <motion.div
-                  key={it.title}
-                  initial={{ opacity: 0, x: 8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  whileHover={{ x: 2, backgroundColor: "oklch(0.27 0.04 260 / 0.5)" }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="group rounded-xl bg-secondary/40 p-3 transition-colors"
-                >
-                  <div className="text-xs font-medium">{it.title}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">{it.detail}</div>
-                  <Link to={it.to} className="mt-2 inline-flex items-center gap-1 text-[10px] text-cyan hover:underline">
-                    {it.action}
-                    <motion.span className="inline-block" initial={{ x: 0 }} whileHover={{ x: 2 }}>
-                      →
-                    </motion.span>
-                  </Link>
-                </motion.div>
-              ))
-            )}
+            {isLoading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                ))
+              : buildInsights(data).map((it, i) => (
+                  <motion.div
+                    key={it.title}
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    whileHover={{ x: 2, backgroundColor: "oklch(0.27 0.04 260 / 0.5)" }}
+                    transition={{ delay: 0.4 + i * 0.1 }}
+                    className="group rounded-xl bg-secondary/40 p-3 transition-colors"
+                  >
+                    <div className="text-xs font-medium">{it.title}</div>
+                    <div className="mt-1 text-[11px] text-muted-foreground">{it.detail}</div>
+                    <Link
+                      to={it.to}
+                      className="mt-2 inline-flex items-center gap-1 text-[10px] text-cyan hover:underline"
+                    >
+                      {it.action}
+                      <motion.span
+                        className="inline-block"
+                        initial={{ x: 0 }}
+                        whileHover={{ x: 2 }}
+                      >
+                        →
+                      </motion.span>
+                    </Link>
+                  </motion.div>
+                ))}
           </div>
         </motion.div>
       </div>
@@ -208,7 +258,10 @@ function Overview() {
       >
         <div className="flex items-center justify-between border-b border-border/50 p-5">
           <h3 className="font-display text-lg font-semibold">Recent campaigns</h3>
-          <Link to="/dashboard/campaigns" className="text-xs text-muted-foreground hover:text-foreground">
+          <Link
+            to="/dashboard/campaigns"
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
             View all →
           </Link>
         </div>
@@ -223,7 +276,11 @@ function Overview() {
             icon={Sparkles}
             title="No campaigns yet"
             description="Create your first AI-generated campaign and it will show up here with live performance."
-            action={<Link to="/dashboard/campaigns"><MotionButton>Create campaign</MotionButton></Link>}
+            action={
+              <Link to="/dashboard/campaigns">
+                <MotionButton>Create campaign</MotionButton>
+              </Link>
+            }
             className="border-0 p-10"
           />
         ) : (
@@ -242,7 +299,9 @@ function Overview() {
                 <AnimatedTableRow key={c.id} index={idx}>
                   <td className="px-5 py-3 font-medium">{c.name}</td>
                   <td className="px-5 py-3 text-muted-foreground">{c.channel}</td>
-                  <td className="px-5 py-3 text-right tabular-nums">{c.audienceSize.toLocaleString()}</td>
+                  <td className="px-5 py-3 text-right tabular-nums">
+                    {c.audienceSize.toLocaleString()}
+                  </td>
                   <td className="px-5 py-3 text-right tabular-nums">{c.openRate}%</td>
                   <td className="px-5 py-3 text-right">
                     <StatusBadge status={c.status} />
@@ -366,7 +425,9 @@ function EmptyState({
   className?: string;
 }) {
   return (
-    <div className={`grid place-items-center rounded-xl border border-dashed border-border p-8 text-center ${className}`}>
+    <div
+      className={`grid place-items-center rounded-xl border border-dashed border-border p-8 text-center ${className}`}
+    >
       <Icon className="h-6 w-6 text-muted-foreground" />
       <div className="mt-3 text-sm font-medium">{title}</div>
       <p className="mt-1 max-w-sm text-xs text-muted-foreground">{description}</p>
@@ -382,7 +443,9 @@ function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => voi
         <AlertCircle className="h-4 w-4" />
         {message}
       </div>
-      <button onClick={onRetry} className="text-xs underline">Retry</button>
+      <button onClick={onRetry} className="text-xs underline">
+        Retry
+      </button>
     </div>
   );
 }

@@ -31,7 +31,8 @@ function tierFor(customer: Customer): { label: string; cls: string } {
     ? (Date.now() - new Date(customer.lastOrderDate).getTime()) / (1000 * 60 * 60 * 24)
     : Infinity;
 
-  if (inactiveDays > 60) return { label: "Dormant", cls: "bg-muted-foreground/10 text-muted-foreground" };
+  if (inactiveDays > 60)
+    return { label: "Dormant", cls: "bg-muted-foreground/10 text-muted-foreground" };
   if (spend > 15000) return { label: "VIP", cls: "bg-pink/10 text-pink" };
   if (spend > 5000) return { label: "Loyal", cls: "bg-cyan/10 text-cyan" };
   return { label: "Active", cls: "bg-emerald-400/10 text-emerald-400" };
@@ -51,7 +52,11 @@ function Customers() {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data, isLoading, isError, error, refetch, isFetching } = useCustomers({ page, size: PAGE_SIZE, search });
+  const { data, isLoading, isError, error, refetch, isFetching } = useCustomers({
+    page,
+    size: PAGE_SIZE,
+    search,
+  });
 
   const tierCounts = useMemo(() => {
     const counts = { VIP: 0, Loyal: 0, Active: 0, Dormant: 0 };
@@ -73,7 +78,9 @@ function Customers() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">CRM</div>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Customer Explorer</h1>
+          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">
+            Customer Explorer
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {data ? `${data.totalElements.toLocaleString()} customers` : "Loading…"}
           </p>
@@ -98,7 +105,9 @@ function Customers() {
             <AlertCircle className="h-4 w-4" />
             {error instanceof Error ? error.message : "Failed to load customers."}
           </div>
-          <button onClick={() => refetch()} className="text-xs underline">Retry</button>
+          <button onClick={() => refetch()} className="text-xs underline">
+            Retry
+          </button>
         </div>
       )}
 
@@ -179,7 +188,12 @@ function Customers() {
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div className="grid h-8 w-8 place-items-center rounded-full bg-aurora text-[11px] font-semibold text-background">
-                          {c.name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase()}
+                          {c.name
+                            .split(" ")
+                            .map((s) => s[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
                         </div>
                         <div>
                           <div className="font-medium">{c.name}</div>
@@ -188,10 +202,16 @@ function Customers() {
                       </div>
                     </td>
                     <td className="px-5 py-3 text-muted-foreground">{c.city || "—"}</td>
-                    <td className="px-5 py-3 text-right tabular-nums">₹{c.totalSpend.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-right text-muted-foreground">{daysAgo(c.lastOrderDate)}</td>
+                    <td className="px-5 py-3 text-right tabular-nums">
+                      ₹{c.totalSpend.toLocaleString()}
+                    </td>
+                    <td className="px-5 py-3 text-right text-muted-foreground">
+                      {daysAgo(c.lastOrderDate)}
+                    </td>
                     <td className="px-5 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${tier.cls}`}>{tier.label}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${tier.cls}`}>
+                        {tier.label}
+                      </span>
                     </td>
                   </motion.tr>
                 );
@@ -229,9 +249,22 @@ function Customers() {
   );
 }
 
-function AddCustomerDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+function AddCustomerDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const createCustomer = useCreateCustomer();
-  const [form, setForm] = useState<CustomerRequest>({ name: "", email: "", phone: "", city: "", gender: "", age: undefined });
+  const [form, setForm] = useState<CustomerRequest>({
+    name: "",
+    email: "",
+    phone: "",
+    city: "",
+    gender: "",
+    age: undefined,
+  });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const reset = () => {
@@ -266,7 +299,13 @@ function AddCustomerDialog({ open, onOpenChange }: { open: boolean; onOpenChange
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) reset(); }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        onOpenChange(v);
+        if (!v) reset();
+      }}
+    >
       <DialogTrigger asChild>
         <MotionButton>
           <Plus className="h-3.5 w-3.5" /> Add customer
@@ -336,7 +375,12 @@ function AddCustomerDialog({ open, onOpenChange }: { open: boolean; onOpenChange
                 min={0}
                 max={150}
                 value={form.age ?? ""}
-                onChange={(e) => setForm((f) => ({ ...f, age: e.target.value ? Number(e.target.value) : undefined }))}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    age: e.target.value ? Number(e.target.value) : undefined,
+                  }))
+                }
                 className="w-full rounded-lg bg-secondary/40 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
               />
             </Field>

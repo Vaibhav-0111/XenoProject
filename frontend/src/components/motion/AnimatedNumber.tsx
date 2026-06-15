@@ -42,9 +42,7 @@ export function AnimatedNumber({
     };
   }, [value, durationMs]);
 
-  const formatted = isFloat
-    ? display.toFixed(fixed)
-    : Math.round(display).toLocaleString();
+  const formatted = isFloat ? display.toFixed(fixed) : Math.round(display).toLocaleString();
 
   return (
     <span className={className}>

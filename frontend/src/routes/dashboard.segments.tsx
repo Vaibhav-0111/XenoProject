@@ -50,7 +50,12 @@ function Segments() {
   const preview = useSegmentPreview();
   const createSegment = useCreateSegment();
   const aiSegment = useAiSegment();
-  const { data: savedSegments, isLoading: segmentsLoading, isError: segmentsError, refetch: refetchSegments } = useSegments({ size: 8 });
+  const {
+    data: savedSegments,
+    isLoading: segmentsLoading,
+    isError: segmentsError,
+    refetch: refetchSegments,
+  } = useSegments({ size: 8 });
 
   const rules: SegmentRuleGroup = { operator: "AND", conditions };
 
@@ -118,7 +123,9 @@ function Segments() {
       { name: name.trim(), description: description.trim() || undefined, rules },
       {
         onSuccess: (segment) => {
-          toast.success(`Segment "${segment.name}" saved — ${segment.audienceSize.toLocaleString()} customers`);
+          toast.success(
+            `Segment "${segment.name}" saved — ${segment.audienceSize.toLocaleString()} customers`,
+          );
         },
         onError: (err) => {
           toast.error(err instanceof ApiError ? err.message : "Could not save segment.");
@@ -136,7 +143,10 @@ function Segments() {
       { name: name.trim(), description: description.trim() || undefined, rules },
       {
         onSuccess: (segment) => {
-          navigate({ to: "/dashboard/campaigns", search: (prev) => ({ ...prev, segmentId: segment.id }) as any });
+          navigate({
+            to: "/dashboard/campaigns",
+            search: (prev) => ({ ...prev, segmentId: segment.id }) as Record<string, unknown>,
+          });
         },
         onError: (err) => {
           toast.error(err instanceof ApiError ? err.message : "Could not save segment.");
@@ -196,7 +206,9 @@ function Segments() {
 
           <div className="mt-4 space-y-2">
             {description && (
-              <p className="rounded-lg bg-secondary/30 px-3 py-2 text-xs text-muted-foreground">{description}</p>
+              <p className="rounded-lg bg-secondary/30 px-3 py-2 text-xs text-muted-foreground">
+                {description}
+              </p>
             )}
             {conditions.map((r, i) => (
               <motion.div
@@ -219,7 +231,9 @@ function Segments() {
                   className="rounded-lg bg-secondary px-3 py-1.5 text-xs outline-none"
                 >
                   {FIELD_OPTIONS.map((f) => (
-                    <option key={f.value} value={f.value}>{f.label}</option>
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
                   ))}
                 </select>
                 <select
@@ -228,7 +242,9 @@ function Segments() {
                   className="rounded-lg bg-cyan/10 px-2 py-1.5 text-xs text-cyan outline-none"
                 >
                   {(isStringField(r.field) ? OPERATORS_STRING : OPERATORS_NUMERIC).map((op) => (
-                    <option key={op} value={op}>{op}</option>
+                    <option key={op} value={op}>
+                      {op}
+                    </option>
                   ))}
                 </select>
                 <input
@@ -285,9 +301,15 @@ function Segments() {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl glass-strong p-6 text-center"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-mint">Live audience</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-mint">
+            Live audience
+          </div>
           <div className="mt-4 font-display text-5xl font-medium tracking-[-0.03em] text-gradient">
-            {preview.isPending ? <Skeleton className="mx-auto h-12 w-32" /> : <AnimatedNumber value={audienceSize} />}
+            {preview.isPending ? (
+              <Skeleton className="mx-auto h-12 w-32" />
+            ) : (
+              <AnimatedNumber value={audienceSize} />
+            )}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">customers match</div>
 
@@ -298,7 +320,11 @@ function Segments() {
             </div>
           )}
 
-          <MotionButton className="mt-6 w-full" onClick={handleLaunch} disabled={createSegment.isPending || audienceSize === 0}>
+          <MotionButton
+            className="mt-6 w-full"
+            onClick={handleLaunch}
+            disabled={createSegment.isPending || audienceSize === 0}
+          >
             Use in Campaign →
           </MotionButton>
           {audienceSize === 0 && !preview.isPending && (
@@ -314,14 +340,19 @@ function Segments() {
         <div className="flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold">Saved segments</h3>
           {segmentsError && (
-            <button onClick={() => refetchSegments()} className="text-xs text-muted-foreground underline">
+            <button
+              onClick={() => refetchSegments()}
+              className="text-xs text-muted-foreground underline"
+            >
               Retry
             </button>
           )}
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
           {segmentsLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-2xl" />
+            ))
           ) : !savedSegments || savedSegments.content.length === 0 ? (
             <div className="col-span-full grid place-items-center rounded-2xl border border-dashed border-border p-8 text-center">
               <Target className="h-6 w-6 text-muted-foreground" />
@@ -343,9 +374,12 @@ function Segments() {
                 <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-cyan to-violet opacity-20 blur-2xl transition-opacity group-hover:opacity-40" />
                 <div className="relative">
                   <div className="text-sm font-medium">{s.name}</div>
-                  <div className="mt-3 font-display text-2xl">{s.audienceSize.toLocaleString()}</div>
+                  <div className="mt-3 font-display text-2xl">
+                    {s.audienceSize.toLocaleString()}
+                  </div>
                   <div className="text-[11px] text-muted-foreground">
-                    {s.rules.conditions?.length ?? 0} rule{(s.rules.conditions?.length ?? 0) === 1 ? "" : "s"}
+                    {s.rules.conditions?.length ?? 0} rule
+                    {(s.rules.conditions?.length ?? 0) === 1 ? "" : "s"}
                   </div>
                 </div>
               </motion.div>

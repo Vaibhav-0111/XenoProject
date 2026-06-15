@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, clearToken, getToken, setToken, ApiError } from "./api/client";
-import { firebaseSignOutIfConfigured, isFirebaseConfigured, signInWithGooglePopup } from "./firebase";
+import {
+  firebaseSignOutIfConfigured,
+  isFirebaseConfigured,
+  signInWithGooglePopup,
+} from "./firebase";
 import type { AuthResponse, UserResponse } from "./api/types";
 
 const USER_KEY = "xenoreach_user";
@@ -71,7 +75,11 @@ export async function signInWithEmail(email: string, name?: string): Promise<Use
     name: name?.trim() || email.split("@")[0],
   });
 
-  const auth = await api.post<AuthResponse>("/api/auth/google", { idToken }, { unauthenticated: true });
+  const auth = await api.post<AuthResponse>(
+    "/api/auth/google",
+    { idToken },
+    { unauthenticated: true },
+  );
   persistSession(auth);
   return auth.user;
 }
@@ -88,7 +96,11 @@ export async function signInWithEmail(email: string, name?: string): Promise<Use
 export async function signInWithGoogle(): Promise<UserResponse> {
   if (isFirebaseConfigured()) {
     const idToken = await signInWithGooglePopup();
-    const auth = await api.post<AuthResponse>("/api/auth/google", { idToken }, { unauthenticated: true });
+    const auth = await api.post<AuthResponse>(
+      "/api/auth/google",
+      { idToken },
+      { unauthenticated: true },
+    );
     persistSession(auth);
     return auth.user;
   }

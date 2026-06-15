@@ -1,12 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 
-export type OrbState =
-  | "idle"
-  | "thinking"
-  | "analyzing"
-  | "generating"
-  | "executing"
-  | "completed";
+export type OrbState = "idle" | "thinking" | "analyzing" | "generating" | "executing" | "completed";
 
 interface AIOrbProps {
   size?: number;
@@ -120,7 +114,11 @@ export function AIOrb({ size = 240, state = "idle", className = "" }: AIOrbProps
       <motion.div
         className="absolute inset-0 rounded-full"
         animate={{ rotate: ringSpeed ? 360 : 0 }}
-        transition={{ duration: ringSpeed || 0.001, repeat: ringSpeed ? Infinity : 0, ease: "linear" }}
+        transition={{
+          duration: ringSpeed || 0.001,
+          repeat: ringSpeed ? Infinity : 0,
+          ease: "linear",
+        }}
         style={{
           background: `conic-gradient(from 0deg, transparent, ${cfg.ringA}, transparent 35%)`,
           maskImage: "radial-gradient(circle, transparent 60%, black 62%, black 100%)",
@@ -132,7 +130,11 @@ export function AIOrb({ size = 240, state = "idle", className = "" }: AIOrbProps
       <motion.div
         className="absolute inset-4 rounded-full"
         animate={{ rotate: ringSpeed ? -360 : 0 }}
-        transition={{ duration: (ringSpeed * 0.7) || 0.001, repeat: ringSpeed ? Infinity : 0, ease: "linear" }}
+        transition={{
+          duration: ringSpeed * 0.7 || 0.001,
+          repeat: ringSpeed ? Infinity : 0,
+          ease: "linear",
+        }}
         style={{
           background: `conic-gradient(from 180deg, transparent, ${cfg.ringB}, transparent 30%)`,
           maskImage: "radial-gradient(circle, transparent 65%, black 67%, black 100%)",

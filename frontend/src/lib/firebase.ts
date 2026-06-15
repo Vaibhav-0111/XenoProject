@@ -8,9 +8,18 @@
  * Firebase project configured.
  */
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, type Auth } from "firebase/auth";
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  type Auth,
+} from "firebase/auth";
 
-const env = (typeof import.meta !== "undefined" ? (import.meta as any).env : {}) || {};
+const env =
+  (typeof import.meta !== "undefined"
+    ? (import.meta as unknown as { env: Record<string, string> }).env
+    : {}) || {};
 
 const firebaseConfig = {
   apiKey: env.VITE_FIREBASE_API_KEY,

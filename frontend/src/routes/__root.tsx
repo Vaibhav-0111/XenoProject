@@ -75,7 +75,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "XenoReach AI — Marketing Intelligence, Powered by AI" },
-      { name: "description", content: "AI-native CRM for customer engagement and marketing automation." },
+      {
+        name: "description",
+        content: "AI-native CRM for customer engagement and marketing automation.",
+      },
       { name: "author", content: "XenoReach" },
       { property: "og:title", content: "XenoReach AI" },
       { property: "og:description", content: "Marketing Intelligence, Powered by AI" },

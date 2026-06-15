@@ -7,7 +7,12 @@ import { AIOrb } from "@/components/AIOrb";
 import { useOrbState, type OrbState } from "@/components/OrbStateContext";
 import { MotionButton } from "@/components/motion/MotionButton";
 import { ApiError } from "@/lib/api/client";
-import { useAiCommand, useCreateCampaign, useCreateSegment, useLaunchCampaign } from "@/lib/api/queries";
+import {
+  useAiCommand,
+  useCreateCampaign,
+  useCreateSegment,
+  useLaunchCampaign,
+} from "@/lib/api/queries";
 import type { AiCommandResponse } from "@/lib/api/types";
 
 export const Route = createFileRoute("/dashboard/ai")({
@@ -76,10 +81,14 @@ function AICommand() {
     let i = 0;
     const interval = setInterval(() => {
       i += 6;
-      setMessages((m) => m.map((msg) => (msg.id === aiId ? { ...msg, text: fullText.slice(0, i) } : msg)));
+      setMessages((m) =>
+        m.map((msg) => (msg.id === aiId ? { ...msg, text: fullText.slice(0, i) } : msg)),
+      );
       if (i >= fullText.length) {
         clearInterval(interval);
-        setMessages((m) => m.map((msg) => (msg.id === aiId ? { ...msg, text: fullText, streaming: false } : msg)));
+        setMessages((m) =>
+          m.map((msg) => (msg.id === aiId ? { ...msg, text: fullText, streaming: false } : msg)),
+        );
         onDone?.();
       }
     }, 16);
@@ -110,7 +119,8 @@ function AICommand() {
       },
       onError: (err) => {
         updateOrb("idle");
-        const message = err instanceof ApiError ? err.message : "Something went wrong reaching the AI engine.";
+        const message =
+          err instanceof ApiError ? err.message : "Something went wrong reaching the AI engine.";
         const aiId = Date.now() + 1;
         setMessages((m) => [...m, { id: aiId, role: "ai", text: message, error: true }]);
       },
@@ -120,11 +130,17 @@ function AICommand() {
   const launchPlan = (msgId: number, plan: AiCommandResponse) => {
     setLaunchingId(msgId);
     createSegment.mutate(
-      { name: plan.segment.segmentName, description: plan.segment.description, rules: plan.segment.rules },
+      {
+        name: plan.segment.segmentName,
+        description: plan.segment.description,
+        rules: plan.segment.rules,
+      },
       {
         onSuccess: (segment) => {
           if (segment.audienceSize === 0) {
-            toast.error("This audience matches 0 customers right now -- adjust the segment before launching.");
+            toast.error(
+              "This audience matches 0 customers right now -- adjust the segment before launching.",
+            );
             setLaunchingId(null);
             navigate({ to: "/dashboard/segments" });
             return;
@@ -142,13 +158,20 @@ function AICommand() {
               onSuccess: (campaign) => {
                 launchCampaign.mutate(campaign.id, {
                   onSuccess: () => {
-                    toast.success(`Launched "${campaign.name}" to ${campaign.audienceSize.toLocaleString()} customers`);
+                    toast.success(
+                      `Launched "${campaign.name}" to ${campaign.audienceSize.toLocaleString()} customers`,
+                    );
                     setLaunchingId(null);
-                    navigate({ to: "/dashboard/analytics", search: { campaignId: campaign.id } as any });
+                    navigate({
+                      to: "/dashboard/analytics",
+                      search: { campaignId: campaign.id } as Record<string, unknown>,
+                    });
                   },
                   onError: (err) => {
                     setLaunchingId(null);
-                    toast.error(err instanceof ApiError ? err.message : "Campaign created but launch failed.");
+                    toast.error(
+                      err instanceof ApiError ? err.message : "Campaign created but launch failed.",
+                    );
                   },
                 });
               },
@@ -172,11 +195,15 @@ function AICommand() {
       <div className="flex items-center justify-between pb-4">
         <div>
           <div className="text-xs uppercase tracking-[0.18em] text-muted-foreground">AI Agent</div>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Command Center</h1>
+          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">
+            Command Center
+          </h1>
         </div>
         <div className="flex items-center gap-2 rounded-full glass px-3 py-1.5 text-[11px]">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          {localOrbState === "idle" ? "Online" : localOrbState.charAt(0).toUpperCase() + localOrbState.slice(1) + "…"}
+          {localOrbState === "idle"
+            ? "Online"
+            : localOrbState.charAt(0).toUpperCase() + localOrbState.slice(1) + "…"}
         </div>
       </div>
 
@@ -187,12 +214,17 @@ function AICommand() {
             {messages.length === 0 ? (
               <div className="grid h-full place-items-center text-center">
                 <div>
-                  <AIOrb size={180} state={localOrbState === "idle" ? "idle" : localOrbState} className="mx-auto" />
+                  <AIOrb
+                    size={180}
+                    state={localOrbState === "idle" ? "idle" : localOrbState}
+                    className="mx-auto"
+                  />
                   <h2 className="mt-8 font-display text-2xl font-semibold tracking-tight">
                     How can I help you grow today?
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Describe a goal and I'll build the audience, draft the campaign, and pick the best channel.
+                    Describe a goal and I'll build the audience, draft the campaign, and pick the
+                    best channel.
                   </p>
                   <div className="mt-8 grid max-w-2xl gap-2 sm:grid-cols-2">
                     {SUGGESTIONS.map((s, i) => (
@@ -248,7 +280,13 @@ function AICommand() {
                               disabled={launchingId === m.id}
                               className="text-xs"
                             >
-                              {launchingId === m.id ? "Launching…" : <><Rocket className="h-3.5 w-3.5" /> Launch this campaign</>}
+                              {launchingId === m.id ? (
+                                "Launching…"
+                              ) : (
+                                <>
+                                  <Rocket className="h-3.5 w-3.5" /> Launch this campaign
+                                </>
+                              )}
                             </MotionButton>
                           </div>
                         )}
@@ -296,7 +334,9 @@ function AICommand() {
             <div className="text-xs text-muted-foreground capitalize">{localOrbState}</div>
           </div>
           <div className="flex-1 rounded-2xl glass p-5">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">Capabilities</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              Capabilities
+            </div>
             <ul className="mt-3 space-y-2 text-xs">
               {[
                 "Audience generation",
@@ -328,7 +368,7 @@ function FormattedText({ text }: { text: string }) {
           </strong>
         ) : (
           <span key={i}>{p}</span>
-        )
+        ),
       )}
     </span>
   );

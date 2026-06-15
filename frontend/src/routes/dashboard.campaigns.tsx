@@ -31,7 +31,12 @@ function Campaigns() {
   const { setState: setOrb } = useOrbState();
 
   const { data: segments, isLoading: segmentsLoading } = useSegments({ size: 50 });
-  const { data: campaigns, isLoading: campaignsLoading, isError: campaignsError, refetch: refetchCampaigns } = useCampaigns({ size: 10 });
+  const {
+    data: campaigns,
+    isLoading: campaignsLoading,
+    isError: campaignsError,
+    refetch: refetchCampaigns,
+  } = useCampaigns({ size: 10 });
 
   const aiCampaign = useAiCampaign();
   const createCampaign = useCreateCampaign();
@@ -120,11 +125,15 @@ function Campaigns() {
           }
           launchCampaign.mutate(campaign.id, {
             onSuccess: () => {
-              toast.success(`Campaign "${campaign.name}" launched to ${campaign.audienceSize.toLocaleString()} customers`);
+              toast.success(
+                `Campaign "${campaign.name}" launched to ${campaign.audienceSize.toLocaleString()} customers`,
+              );
               resetForm();
             },
             onError: (err) => {
-              toast.error(err instanceof ApiError ? err.message : "Campaign created, but launch failed.");
+              toast.error(
+                err instanceof ApiError ? err.message : "Campaign created, but launch failed.",
+              );
             },
           });
         },
@@ -147,10 +156,16 @@ function Campaigns() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Builder */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl glass p-6 lg:col-span-2 space-y-5">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl glass p-6 lg:col-span-2 space-y-5"
+        >
           {/* Step 1: Audience */}
           <div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground">1. Audience</div>
+            <div className="text-xs uppercase tracking-wider text-muted-foreground">
+              1. Audience
+            </div>
             {segmentsLoading ? (
               <Skeleton className="mt-2 h-10 w-full" />
             ) : !segments || segments.content.length === 0 ? (
@@ -188,7 +203,10 @@ function Campaigns() {
                 className="flex-1 rounded-xl bg-input/60 px-4 py-2.5 text-sm outline-none ring-1 ring-border focus:ring-primary"
                 onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
               />
-              <MotionButton onClick={handleGenerate} disabled={aiCampaign.isPending || !goal.trim()}>
+              <MotionButton
+                onClick={handleGenerate}
+                disabled={aiCampaign.isPending || !goal.trim()}
+              >
                 {aiCampaign.isPending ? "Thinking…" : "Generate"}
               </MotionButton>
             </div>
@@ -240,7 +258,9 @@ function Campaigns() {
                   key={c}
                   onClick={() => setChannel(c)}
                   className={`rounded-lg px-3 py-1.5 text-xs transition-colors ${
-                    channel === c ? "bg-foreground text-background" : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                    channel === c
+                      ? "bg-foreground text-background"
+                      : "bg-secondary/50 text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {c}
@@ -250,23 +270,47 @@ function Campaigns() {
           </div>
 
           <div className="flex gap-2 pt-2">
-            <MotionButton variant="outline" onClick={() => handleCreate(false)} disabled={createCampaign.isPending}>
+            <MotionButton
+              variant="outline"
+              onClick={() => handleCreate(false)}
+              disabled={createCampaign.isPending}
+            >
               Save as draft
             </MotionButton>
-            <MotionButton onClick={() => handleCreate(true)} disabled={createCampaign.isPending || launchCampaign.isPending}>
-              {launchCampaign.isPending ? "Launching…" : <><Rocket className="h-3.5 w-3.5" /> Create & Launch</>}
+            <MotionButton
+              onClick={() => handleCreate(true)}
+              disabled={createCampaign.isPending || launchCampaign.isPending}
+            >
+              {launchCampaign.isPending ? (
+                "Launching…"
+              ) : (
+                <>
+                  <Rocket className="h-3.5 w-3.5" /> Create & Launch
+                </>
+              )}
             </MotionButton>
           </div>
         </motion.div>
 
         {/* Preview */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl glass-strong p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl glass-strong p-6"
+        >
           <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-mint">Preview</div>
           <div className="mt-4 rounded-xl border border-border/60 bg-card/40 p-4">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{channel}</div>
-            {channel === "EMAIL" && subject && <div className="mt-2 text-sm font-semibold">{subject || "Subject line"}</div>}
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              {channel}
+            </div>
+            {channel === "EMAIL" && subject && (
+              <div className="mt-2 text-sm font-semibold">{subject || "Subject line"}</div>
+            )}
             <p className="mt-2 whitespace-pre-wrap text-sm">
-              {(message || "Your message will appear here…").replace(/\{\{first_name\}\}/g, "Priya")}
+              {(message || "Your message will appear here…").replace(
+                /\{\{first_name\}\}/g,
+                "Priya",
+              )}
             </p>
             {cta && (
               <div className="mt-3 inline-flex rounded-lg bg-aurora px-3 py-1.5 text-xs font-medium text-background">
@@ -276,25 +320,40 @@ function Campaigns() {
           </div>
           {selectedSegment && (
             <div className="mt-4 rounded-xl border border-border/60 bg-card/40 p-3 text-left">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Audience</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Audience
+              </div>
               <div className="mt-1 text-sm">{selectedSegment.name}</div>
-              <div className="text-[11px] text-muted-foreground">{selectedSegment.audienceSize.toLocaleString()} customers will receive this</div>
+              <div className="text-[11px] text-muted-foreground">
+                {selectedSegment.audienceSize.toLocaleString()} customers will receive this
+              </div>
             </div>
           )}
         </motion.div>
       </div>
 
       {/* Existing campaigns */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl glass overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl glass overflow-hidden"
+      >
         <div className="flex items-center justify-between border-b border-border/50 p-5">
           <h3 className="font-display text-lg font-semibold">All campaigns</h3>
           {campaignsError && (
-            <button onClick={() => refetchCampaigns()} className="text-xs text-muted-foreground underline">Retry</button>
+            <button
+              onClick={() => refetchCampaigns()}
+              className="text-xs text-muted-foreground underline"
+            >
+              Retry
+            </button>
           )}
         </div>
         {campaignsLoading ? (
           <div className="space-y-3 p-5">
-            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
           </div>
         ) : !campaigns || campaigns.content.length === 0 ? (
           <div className="grid place-items-center p-10 text-center">
@@ -318,10 +377,19 @@ function Campaigns() {
             </thead>
             <tbody>
               {campaigns.content.map((c, idx) => (
-                <CampaignRow key={c.id} campaign={c} index={idx} onLaunch={() => launchCampaign.mutate(c.id, {
-                  onSuccess: () => toast.success(`Campaign "${c.name}" launched`),
-                  onError: (err) => toast.error(err instanceof ApiError ? err.message : "Launch failed."),
-                })} launching={launchCampaign.isPending && launchCampaign.variables === c.id} />
+                <CampaignRow
+                  key={c.id}
+                  campaign={c}
+                  index={idx}
+                  onLaunch={() =>
+                    launchCampaign.mutate(c.id, {
+                      onSuccess: () => toast.success(`Campaign "${c.name}" launched`),
+                      onError: (err) =>
+                        toast.error(err instanceof ApiError ? err.message : "Launch failed."),
+                    })
+                  }
+                  launching={launchCampaign.isPending && launchCampaign.variables === c.id}
+                />
               ))}
             </tbody>
           </table>
@@ -331,23 +399,43 @@ function Campaigns() {
   );
 }
 
-function CampaignRow({ campaign, index, onLaunch, launching }: { campaign: Campaign; index: number; onLaunch: () => void; launching: boolean }) {
+function CampaignRow({
+  campaign,
+  index,
+  onLaunch,
+  launching,
+}: {
+  campaign: Campaign;
+  index: number;
+  onLaunch: () => void;
+  launching: boolean;
+}) {
   return (
     <AnimatedTableRow index={index}>
       <td className="px-5 py-3 font-medium">{campaign.name}</td>
       <td className="px-5 py-3 text-muted-foreground">{campaign.segmentName}</td>
       <td className="px-5 py-3 text-muted-foreground">{campaign.channel}</td>
-      <td className="px-5 py-3 text-right tabular-nums">{campaign.audienceSize.toLocaleString()}</td>
+      <td className="px-5 py-3 text-right tabular-nums">
+        {campaign.audienceSize.toLocaleString()}
+      </td>
       <td className="px-5 py-3 text-right">
         <StatusBadge status={campaign.status} />
       </td>
       <td className="px-5 py-3 text-right">
         {campaign.status === "DRAFT" ? (
-          <button onClick={onLaunch} disabled={launching} className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] hover:bg-secondary/70 disabled:opacity-50">
+          <button
+            onClick={onLaunch}
+            disabled={launching}
+            className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] hover:bg-secondary/70 disabled:opacity-50"
+          >
             {launching ? "Launching…" : "Launch"}
           </button>
         ) : (
-          <Link to="/dashboard/analytics" search={{ campaignId: campaign.id } as any} className="text-[11px] text-cyan hover:underline">
+          <Link
+            to="/dashboard/analytics"
+            search={{ campaignId: campaign.id } as Record<string, unknown>}
+            className="text-[11px] text-cyan hover:underline"
+          >
             View analytics
           </Link>
         )}

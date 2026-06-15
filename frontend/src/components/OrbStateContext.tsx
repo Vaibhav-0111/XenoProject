@@ -1,19 +1,15 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
 
-export type OrbState =
-  | "idle"
-  | "thinking"
-  | "analyzing"
-  | "generating"
-  | "executing"
-  | "completed";
+export type OrbState = "idle" | "thinking" | "analyzing" | "generating" | "executing" | "completed";
 
 type Ctx = {
   state: OrbState;
   label: string;
   setState: (next: OrbState, opts?: { autoResetMs?: number; label?: string }) => void;
   /** Run a scripted lifecycle: e.g. ["thinking", "generating", "completed"] */
-  runLifecycle: (steps: Array<{ state: OrbState; durationMs: number; label?: string }>) => Promise<void>;
+  runLifecycle: (
+    steps: Array<{ state: OrbState; durationMs: number; label?: string }>,
+  ) => Promise<void>;
 };
 
 const OrbStateContext = createContext<Ctx | null>(null);
@@ -47,13 +43,16 @@ export function OrbStateProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const runLifecycle = useCallback<Ctx["runLifecycle"]>(async (steps) => {
-    for (const step of steps) {
-      setState(step.state, { label: step.label });
-      await new Promise((r) => setTimeout(r, step.durationMs));
-    }
-    setState("idle");
-  }, [setState]);
+  const runLifecycle = useCallback<Ctx["runLifecycle"]>(
+    async (steps) => {
+      for (const step of steps) {
+        setState(step.state, { label: step.label });
+        await new Promise((r) => setTimeout(r, step.durationMs));
+      }
+      setState("idle");
+    },
+    [setState],
+  );
 
   return (
     <OrbStateContext.Provider value={{ state, label, setState, runLifecycle }}>

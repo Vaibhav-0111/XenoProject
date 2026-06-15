@@ -1,0 +1,126 @@
+<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><title>XenoReach Deployment Guide</title>
+<style>
+body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.5; }
+h1 { color: #2F5496; font-size: 16pt; border-bottom: 1px solid #2F5496; padding-bottom: 5px; }
+h2 { color: #2F5496; font-size: 14pt; margin-top: 20px; }
+h3 { color: #1F3763; font-size: 12pt; margin-top: 15px; }
+p { margin-bottom: 10px; }
+ul, ol { margin-top: 5px; margin-bottom: 10px; }
+li { margin-bottom: 5px; }
+.code { font-family: 'Courier New', monospace; background-color: #F2F2F2; padding: 2px 4px; border-radius: 3px; font-size: 10pt; }
+.note { background-color: #FFF2CC; padding: 10px; border-left: 4px solid #FFC000; margin-bottom: 15px; }
+</style>
+</head>
+<body>
+
+<h1>XenoReach Step-by-Step Deployment Guide</h1>
+<p>This document provides comprehensive, step-by-step instructions to deploy the entire XenoReach project. The deployment architecture consists of:</p>
+<ul>
+    <li><b>Database:</b> Neon (Serverless PostgreSQL)</li>
+    <li><b>Backend:</b> Railway (Spring Boot Services)</li>
+    <li><b>Frontend:</b> Vercel (React + Vite)</li>
+</ul>
+
+<h2>1. Database Deployment (Neon)</h2>
+<p>Neon provides a serverless PostgreSQL database which easily integrates with Java Spring Boot.</p>
+<ol>
+    <li>Navigate to <a href="https://neon.tech">Neon.tech</a> and create a free account or log in.</li>
+    <li>Click <b>New Project</b> and set the database name to <span class="code">xenoreach</span>. Select your preferred region.</li>
+    <li>Once the database is created, navigate to your <b>Dashboard</b>.</li>
+    <li>Under the <b>Connection Details</b>, select "Java" as the language to see the JDBC connection string.</li>
+    <li>Copy the connection string. It will look like this:
+        <br/><span class="code">jdbc:postgresql://ep-example-endpoint.neon.tech/xenoreach?sslmode=require</span>
+    </li>
+    <li>Note down your database username and password provided by Neon.</li>
+</ol>
+<div class="note"><b>Note:</b> You will use this JDBC connection string as the <span class="code">DATABASE_URL</span> in the Railway backend setup.</div>
+
+<h2>2. Backend Deployment (Railway)</h2>
+<p>The backend is divided into two Spring Boot services: <span class="code">crm-core</span> and <span class="code">channel-simulator</span>. We will deploy both on Railway.</p>
+
+<h3>2.1 Deploying the Channel Simulator</h3>
+<p>We deploy the Simulator first so we can obtain its URL to pass to the CRM Core.</p>
+<ol>
+    <li>Navigate to <a href="https://railway.app">Railway.app</a> and create an account.</li>
+    <li>Click <b>New Project</b> &gt; <b>Deploy from GitHub repo</b>. Choose your <span class="code">xenoreach-ai</span> repository.</li>
+    <li>Once added, click on the newly created service block, go to <b>Settings</b>, and configure the following:
+        <ul>
+            <li><b>Root Directory:</b> <span class="code">/backend/channel-simulator</span></li>
+            <li><b>Build Command:</b> <span class="code">mvn clean package -DskipTests</span></li>
+            <li><b>Start Command:</b> <span class="code">java -jar target/channel-simulator-0.0.1-SNAPSHOT.jar</span></li>
+        </ul>
+    </li>
+    <li>Go to the <b>Networking</b> tab in the service settings and click <b>Generate Domain</b>. Copy this URL (e.g., <span class="code">https://channel-simulator-production.up.railway.app</span>).</li>
+    <li>Go to the <b>Variables</b> tab and add the following Environment Variables:
+        <ul>
+            <li><span class="code">PORT</span> = <span class="code">8081</span></li>
+            <li><span class="code">SIM_MIN_DELAY_SECONDS</span> = <span class="code">1</span></li>
+            <li><span class="code">SIM_MAX_DELAY_SECONDS</span> = <span class="code">10</span></li>
+            <li><span class="code">SIM_FAILURE_RATE</span> = <span class="code">0.05</span></li>
+        </ul>
+    </li>
+</ol>
+
+<h3>2.2 Deploying the CRM Core</h3>
+<ol>
+    <li>In the same Railway project workspace, click <b>New</b> &gt; <b>GitHub Repo</b> and select the <span class="code">xenoreach-ai</span> repository again. This creates a second service.</li>
+    <li>Click on this new service block, go to <b>Settings</b>, and configure:
+        <ul>
+            <li><b>Root Directory:</b> <span class="code">/backend/crm-core</span></li>
+            <li><b>Build Command:</b> <span class="code">mvn clean package -DskipTests</span></li>
+            <li><b>Start Command:</b> <span class="code">java -jar target/crm-core-1.0.0.jar</span></li>
+        </ul>
+    </li>
+    <li>Go to the <b>Networking</b> tab and click <b>Generate Domain</b>. Copy this URL as well (e.g., <span class="code">https://crm-core-production.up.railway.app</span>).</li>
+    <li>Go to the <b>Variables</b> tab and add the following Environment Variables:
+        <ul>
+            <li><span class="code">DATABASE_URL</span> = <i>[Your Neon JDBC Connection String]</i></li>
+            <li><span class="code">DATABASE_USERNAME</span> = <i>[Your Neon Database User]</i></li>
+            <li><span class="code">DATABASE_PASSWORD</span> = <i>[Your Neon Database Password]</i></li>
+            <li><span class="code">JWT_SECRET</span> = <span class="code">your-super-secret-jwt-key-min-32-chars</span></li>
+            <li><span class="code">CHANNEL_SIMULATOR_URL</span> = <i>[The Channel Simulator URL generated in Step 2.1]</i></li>
+            <li><span class="code">ALLOWED_ORIGINS</span> = <i>[Leave empty for now, we will update this after frontend deployment]</i></li>
+            <li><span class="code">AI_PROVIDER</span> = <span class="code">mock</span></li>
+            <li><span class="code">FIREBASE_ENABLED</span> = <span class="code">false</span></li>
+            <li><span class="code">PORT</span> = <span class="code">8080</span></li>
+        </ul>
+    </li>
+</ol>
+<div class="note"><b>Note:</b> We will come back to update <span class="code">ALLOWED_ORIGINS</span> and <span class="code">CRM_CORE_URL</span> (on the simulator service) once everything has a public URL.</div>
+
+<h2>3. Frontend Deployment (Vercel)</h2>
+<p>The frontend is built using React and Vite, making Vercel the optimal hosting platform.</p>
+<ol>
+    <li>Navigate to <a href="https://vercel.com">Vercel.com</a> and log in.</li>
+    <li>Click <b>Add New...</b> &gt; <b>Project</b>.</li>
+    <li>Import the <span class="code">xenoreach-ai</span> GitHub repository.</li>
+    <li>In the project configuration screen, apply these settings:
+        <ul>
+            <li><b>Framework Preset:</b> Vite</li>
+            <li><b>Root Directory:</b> <span class="code">frontend</span> (click "Edit" next to root directory and select the frontend folder)</li>
+            <li><b>Build Command:</b> <span class="code">npm run build</span> or <span class="code">bun run build</span></li>
+            <li><b>Output Directory:</b> <span class="code">dist</span></li>
+        </ul>
+    </li>
+    <li>Expand the <b>Environment Variables</b> section and add:
+        <ul>
+            <li><span class="code">VITE_API_BASE_URL</span> = <i>[The CRM Core URL generated in Step 2.2, e.g. https://crm-core-production.up.railway.app]</i></li>
+            <li>(Optional) Add your Firebase variables if you use Google Auth: <span class="code">VITE_FIREBASE_API_KEY</span>, <span class="code">VITE_FIREBASE_PROJECT_ID</span>, etc.</li>
+        </ul>
+    </li>
+    <li>Click <b>Deploy</b>. Wait for Vercel to build and assign a domain (e.g., <span class="code">https://xenoreach-frontend.vercel.app</span>).</li>
+</ol>
+
+<h2>4. Final Networking Hookup</h2>
+<p>Now that all components are live, we need to cross-link their URLs to ensure they can communicate securely.</p>
+<ol>
+    <li><b>Update CRM Core CORS:</b> Go back to Railway &gt; <span class="code">crm-core</span> service &gt; Variables. Set <span class="code">ALLOWED_ORIGINS</span> to your Vercel Frontend URL (e.g., <span class="code">https://xenoreach-frontend.vercel.app</span>). This prevents CORS errors.</li>
+    <li><b>Update Simulator Pointer:</b> Go to Railway &gt; <span class="code">channel-simulator</span> service &gt; Variables. Add a new variable <span class="code">CRM_CORE_URL</span> and set it to your CRM Core URL (e.g., <span class="code">https://crm-core-production.up.railway.app</span>). This tells the simulator where to send event webhooks.</li>
+</ol>
+
+<h2>Congratulations!</h2>
+<p>Your XenoReach application is now fully deployed. The Vercel frontend is communicating securely with the Railway CRM backend, backed by the Neon PostgreSQL database, while the Channel Simulator processes background queue actions.</p>
+
+</body>
+</html>

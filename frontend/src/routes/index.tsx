@@ -56,14 +56,21 @@ function Landing() {
               { href: "#intelligence", label: "Intelligence" },
               { href: "#analytics", label: "Analytics" },
             ].map((item) => (
-              <a key={item.href} href={item.href} className="group relative transition-colors hover:text-foreground">
+              <a
+                key={item.href}
+                href={item.href}
+                className="group relative transition-colors hover:text-foreground"
+              >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 h-px w-0 bg-cyan transition-all duration-300 group-hover:w-full" />
               </a>
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/login" className="hidden text-sm text-muted-foreground hover:text-foreground sm:block">
+            <Link
+              to="/login"
+              className="hidden text-sm text-muted-foreground hover:text-foreground sm:block"
+            >
               Sign in
             </Link>
             <Link
@@ -80,10 +87,13 @@ function Landing() {
       {/* Hero */}
       <section className="relative flex min-h-screen items-center justify-center px-6 pt-32">
         <AmbientGlow />
-        <div className="absolute inset-0 bg-grid opacity-40" style={{
-          maskImage: "radial-gradient(ellipse at center, black 30%, transparent 70%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 70%)",
-        }} />
+        <div
+          className="absolute inset-0 bg-grid opacity-40"
+          style={{
+            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 70%)",
+          }}
+        />
         <Particles count={60} />
 
         <div className="relative z-10 mx-auto max-w-5xl text-center">
@@ -159,10 +169,16 @@ function Landing() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.04, y: -4 }}
-              transition={{ y: { duration: 5, repeat: Infinity, ease: "easeInOut" }, opacity: { delay: 0.6, duration: 0.5 }, scale: { type: "spring", stiffness: 300, damping: 20 } }}
+              transition={{
+                y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                opacity: { delay: 0.6, duration: 0.5 },
+                scale: { type: "spring", stiffness: 300, damping: 20 },
+              }}
               className="absolute -left-8 top-12 hidden w-56 rounded-xl glass-strong p-4 text-left transition-shadow hover:shadow-[0_12px_40px_-12px_oklch(0.72_0.16_270/0.6)] md:block"
             >
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Segment</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Segment
+              </div>
               <div className="mt-1 text-sm font-medium">High-value dormant</div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-secondary">
                 <motion.div
@@ -180,12 +196,18 @@ function Landing() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.04, y: -4 }}
-              transition={{ y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }, opacity: { delay: 0.75, duration: 0.5 }, scale: { type: "spring", stiffness: 300, damping: 20 } }}
+              transition={{
+                y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 },
+                opacity: { delay: 0.75, duration: 0.5 },
+                scale: { type: "spring", stiffness: 300, damping: 20 },
+              }}
               className="absolute -right-4 top-4 hidden w-52 rounded-xl glass-strong p-4 text-left transition-shadow hover:shadow-[0_12px_40px_-12px_oklch(0.78_0.14_220/0.6)] md:block"
             >
               <div className="flex items-center gap-2">
                 <Brain className="h-3.5 w-3.5 text-cyan" />
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">AI Recommends</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  AI Recommends
+                </div>
               </div>
               <div className="mt-1.5 text-sm font-medium">WhatsApp · 74% open rate</div>
               <div className="mt-1 text-xs text-muted-foreground">+₹42K predicted lift</div>
@@ -196,11 +218,17 @@ function Landing() {
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.04, y: -4 }}
-              transition={{ y: { duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }, opacity: { delay: 0.9, duration: 0.5 }, scale: { type: "spring", stiffness: 300, damping: 20 } }}
+              transition={{
+                y: { duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 },
+                opacity: { delay: 0.9, duration: 0.5 },
+                scale: { type: "spring", stiffness: 300, damping: 20 },
+              }}
               className="absolute -bottom-2 right-10 hidden w-44 rounded-xl glass-strong p-3 text-left transition-shadow hover:shadow-[0_12px_40px_-12px_oklch(0.82_0.16_180/0.6)] lg:block"
             >
               <div className="flex items-center justify-between">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Live</div>
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Live
+                </div>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               </div>
               <div className="mt-1 text-sm font-medium">12,439 delivered</div>
@@ -215,9 +243,17 @@ function Landing() {
           <Reveal>
             <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border/60 bg-border/40 sm:grid-cols-4">
               {STATS.map((s, i) => (
-                <div key={s.label} className="bg-background/60 p-6 text-center backdrop-blur-sm sm:p-8">
+                <div
+                  key={s.label}
+                  className="bg-background/60 p-6 text-center backdrop-blur-sm sm:p-8"
+                >
                   <div className="font-display text-3xl font-medium tracking-[-0.02em] text-gradient sm:text-4xl">
-                    <AnimatedNumber value={s.value} prefix={s.prefix} suffix={s.suffix} decimals={s.decimals ?? 0} />
+                    <AnimatedNumber
+                      value={s.value}
+                      prefix={s.prefix}
+                      suffix={s.suffix}
+                      decimals={s.decimals ?? 0}
+                    />
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground">{s.label}</div>
                 </div>
@@ -231,10 +267,13 @@ function Landing() {
       <section id="features" className="relative px-6 py-32">
         <div className="mx-auto max-w-6xl">
           <Reveal className="mb-16 max-w-2xl">
-            <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mint">— The Platform</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mint">
+              — The Platform
+            </div>
             <h2 className="mt-4 font-display text-4xl font-medium tracking-[-0.03em] md:text-5xl">
               An operating system for{" "}
-              <span className="font-serif italic font-normal text-gradient">modern</span> marketing teams.
+              <span className="font-serif italic font-normal text-gradient">modern</span> marketing
+              teams.
             </h2>
           </Reveal>
 
@@ -247,7 +286,10 @@ function Landing() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.06 }}
               >
-                <MotionCard className="h-full rounded-none border-0 bg-background p-8 hover:bg-card/60" lift={false}>
+                <MotionCard
+                  className="h-full rounded-none border-0 bg-background p-8 hover:bg-card/60"
+                  lift={false}
+                >
                   <div className="flex items-center gap-2">
                     <div className="h-px w-6 bg-mint/60 transition-all duration-300 group-hover:w-10 group-hover:bg-cyan" />
                     <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-mint">
@@ -261,7 +303,9 @@ function Landing() {
                   >
                     <f.icon className="h-4 w-4" />
                   </motion.div>
-                  <h3 className="mt-5 font-display text-lg font-medium tracking-tight">{f.title}</h3>
+                  <h3 className="mt-5 font-display text-lg font-medium tracking-tight">
+                    {f.title}
+                  </h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
                 </MotionCard>
               </motion.div>
@@ -275,7 +319,9 @@ function Landing() {
         <div className="mx-auto max-w-6xl rounded-3xl glass-strong p-10 md:p-16">
           <div className="grid items-center gap-12 md:grid-cols-2">
             <Reveal direction="right">
-              <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mint">— AI Agent</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-mint">
+                — AI Agent
+              </div>
               <h2 className="mt-4 font-display text-4xl font-medium tracking-[-0.03em] md:text-5xl">
                 Tell it a goal.
                 <br />
@@ -391,7 +437,10 @@ const FEATURES = [
 
 const AGENT_STEPS = [
   { label: "Analyze inactive cohort", detail: "Identified 2,847 dormant high-value customers" },
-  { label: "Draft win-back message", detail: "Personalized offers with 15% discount + free shipping" },
+  {
+    label: "Draft win-back message",
+    detail: "Personalized offers with 15% discount + free shipping",
+  },
   { label: "Select channel", detail: "WhatsApp — 74% predicted open rate" },
   { label: "Forecast outcome", detail: "+₹42,400 expected revenue lift" },
 ];
