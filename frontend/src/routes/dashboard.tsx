@@ -11,11 +11,14 @@ import {
   Search,
   LogOut,
   Loader2,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { useEffect } from "react";
 import { AIOrb } from "@/components/AIOrb";
 import { OrbStateProvider, useOrbState } from "@/components/OrbStateContext";
 import { Magnetic } from "@/components/motion/Magnetic";
+import { useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/dashboard")({
@@ -66,6 +69,7 @@ function DashboardLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   const initials = (user?.name || user?.email || "?")
     .split(/[\s@.]+/)
@@ -143,6 +147,15 @@ function DashboardLayout() {
               className="peer w-full rounded-lg bg-secondary/60 py-2 pl-9 pr-3 text-sm outline-none ring-1 ring-transparent placeholder:text-muted-foreground/60 transition-shadow focus:ring-primary focus:shadow-[0_0_0_4px_oklch(0.72_0.16_270_/_0.12)]"
             />
           </div>
+          <motion.button
+            whileHover={{ y: -1, scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="relative grid h-9 w-9 place-items-center rounded-lg hover:bg-secondary"
+            aria-label="Toggle Theme"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </motion.button>
           <motion.button
             whileHover={{ y: -1, scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

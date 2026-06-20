@@ -50,13 +50,15 @@ function Campaigns() {
     isLoading: campaignsLoading,
     isError: campaignsError,
     refetch: refetchCampaigns,
-  } = useCampaigns({ size: 10 });
+  } = useCampaigns({ size: 10, search });
 
   const aiCampaign = useAiCampaign();
   const createCampaign = useCreateCampaign();
   const launchCampaign = useLaunchCampaign();
 
   const [segmentId, setSegmentId] = useState<number | undefined>(initialSegmentId);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const [goal, setGoal] = useState("");
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
@@ -356,16 +358,26 @@ function Campaigns() {
         animate={{ opacity: 1, y: 0 }}
         className="rounded-2xl glass overflow-hidden"
       >
-        <div className="flex items-center justify-between border-b border-border/50 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/50 p-5">
           <h3 className="font-display text-lg font-semibold">All campaigns</h3>
-          {campaignsError && (
-            <button
-              onClick={() => refetchCampaigns()}
-              className="text-xs text-muted-foreground underline"
-            >
-              Retry
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); }} className="relative">
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search campaigns…"
+                className="w-48 rounded-lg bg-secondary/60 py-1.5 pl-3 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary"
+              />
+            </form>
+            {campaignsError && (
+              <button
+                onClick={() => refetchCampaigns()}
+                className="text-xs text-muted-foreground underline"
+              >
+                Retry
+              </button>
+            )}
+          </div>
         </div>
         {campaignsLoading ? (
           <div className="space-y-3 p-5">

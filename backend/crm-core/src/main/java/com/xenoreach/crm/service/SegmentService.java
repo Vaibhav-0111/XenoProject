@@ -11,6 +11,7 @@ public interface SegmentService {
     SegmentResponse getById(Long id);
     Segment getEntityById(Long id);
     PagedResponse<SegmentResponse> list(int page, int size);
+    PagedResponse<SegmentResponse> search(String query, int page, int size);
     SegmentPreviewResponse preview(Object rules);
     int computeAudienceSize(Object rules);
 }

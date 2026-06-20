@@ -69,7 +69,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   };
 
   if (body !== undefined) {
-    headers["Content-Type"] = "application/json";
+    if (!(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
   }
 
   if (!unauthenticated) {
@@ -84,7 +86,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     response = await fetch(buildUrl(path, query), {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== undefined ? (body instanceof FormData ? body : JSON.stringify(body)) : undefined,
     });
   } catch (err) {
     throw new ApiError(

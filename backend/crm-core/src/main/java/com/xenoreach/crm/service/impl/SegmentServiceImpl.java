@@ -65,7 +65,17 @@ public class SegmentServiceImpl implements SegmentService {
     public PagedResponse<SegmentResponse> list(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Segment> result = segmentRepository.findAll(pageable);
+        return toPagedResponse(result);
+    }
 
+    @Override
+    public PagedResponse<SegmentResponse> search(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Segment> result = segmentRepository.findByNameContainingIgnoreCase(query, pageable);
+        return toPagedResponse(result);
+    }
+
+    private PagedResponse<SegmentResponse> toPagedResponse(Page<Segment> result) {
         return PagedResponse.<SegmentResponse>builder()
                 .content(result.getContent().stream().map(segmentMapper::toResponse).toList())
                 .page(result.getNumber())

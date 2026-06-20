@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { AlertCircle, Plus, Search, Users } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { AlertCircle, Plus, Search, Upload, Users } from "lucide-react";
+import { useMemo, useState, useRef, type FormEvent } from "react";
 import { toast } from "sonner";
 import { MotionButton } from "@/components/motion/MotionButton";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ApiError } from "@/lib/api/client";
-import { useCreateCustomer, useCustomers } from "@/lib/api/queries";
+import { useCreateCustomer, useCustomers, useImportCustomers } from "@/lib/api/queries";
 import type { Customer, CustomerRequest } from "@/lib/api/types";
 import type { ReactNode } from "react";
 
@@ -51,6 +51,26 @@ function Customers() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const importCustomers = useImportCustomers();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    toast.loading("Importing customers...", { id: "import" });
+    importCustomers.mutate(file, {
+      onSuccess: (res) => {
+        toast.success(`Imported ${res.imported} customers successfully!`, { id: "import" });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      },
+      onError: (err) => {
+        toast.error(err instanceof ApiError ? err.message : "Failed to import customers", { id: "import" });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    });
+  };
 
   const { data, isLoading, isError, error, refetch, isFetching } = useCustomers({
     page,
@@ -95,6 +115,21 @@ function Customers() {
               className="w-56 rounded-lg bg-secondary/60 py-2 pl-8 pr-3 text-xs outline-none ring-1 ring-transparent placeholder:text-muted-foreground/60 focus:ring-primary"
             />
           </form>
+          <input 
+            type="file" 
+            accept=".csv" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+          />
+          <MotionButton 
+            variant="outline" 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importCustomers.isPending}
+          >
+            <Upload className="h-3.5 w-3.5" /> 
+            {importCustomers.isPending ? "Importing…" : "Import CSV"}
+          </MotionButton>
           <AddCustomerDialog open={dialogOpen} onOpenChange={setDialogOpen} />
         </div>
       </div>
@@ -166,7 +201,14 @@ function Customers() {
                       : "Add your first customer to start building segments and campaigns."}
                   </p>
                   {!search && (
-                    <div className="mt-4 flex justify-center">
+                    <div className="mt-4 flex justify-center gap-2">
+                      <MotionButton 
+                        variant="outline" 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={importCustomers.isPending}
+                      >
+                        <Upload className="h-3.5 w-3.5" /> Import CSV
+                      </MotionButton>
                       <MotionButton onClick={() => setDialogOpen(true)}>
                         <Plus className="h-3.5 w-3.5" /> Add customer
                       </MotionButton>

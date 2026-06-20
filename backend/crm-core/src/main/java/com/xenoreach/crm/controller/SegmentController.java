@@ -43,6 +43,14 @@ public class SegmentController {
         return ResponseEntity.ok(segmentService.getById(id));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<PagedResponse<SegmentResponse>> search(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(segmentService.search(query, page, size));
+    }
+
     @Operation(summary = "Preview the live audience size for a given rule tree (without saving)")
     @PostMapping("/preview")
     public ResponseEntity<SegmentPreviewResponse> preview(@Valid @RequestBody SegmentPreviewRequest request) {

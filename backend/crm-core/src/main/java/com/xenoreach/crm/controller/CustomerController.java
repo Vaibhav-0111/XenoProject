@@ -4,6 +4,7 @@ import com.xenoreach.crm.dto.request.CustomerRequest;
 import com.xenoreach.crm.dto.response.CustomerResponse;
 import com.xenoreach.crm.dto.response.PagedResponse;
 import com.xenoreach.crm.service.CustomerService;
+import com.xenoreach.crm.service.CsvImportService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 @Tag(name = "Customers", description = "Customer management")
 @RestController
@@ -19,10 +22,22 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CsvImportService csvImportService;
 
     @PostMapping
     public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerService.create(request));
+    }
+
+    @Operation(summary = "Import customers from a CSV file")
+    @PostMapping("/import")
+    public ResponseEntity<Map<String, Integer>> importCsv(@RequestParam("file") MultipartFile file) {
+        try {
+            int count = csvImportService.importCustomers(file.getInputStream());
+            return ResponseEntity.ok(Map.of("imported", count));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to import CSV: " + e.getMessage());
+        }
     }
 
     @Operation(summary = "List customers with pagination & sorting")

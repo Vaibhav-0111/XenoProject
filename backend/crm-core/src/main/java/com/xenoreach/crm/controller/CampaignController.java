@@ -41,6 +41,14 @@ public class CampaignController {
         return ResponseEntity.ok(campaignService.getById(id));
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<PagedResponse<CampaignResponse>> search(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(campaignService.search(query, page, size));
+    }
+
     @Operation(summary = "Launch a campaign -- resolves the audience and dispatches communications via the Channel Simulator")
     @PostMapping("/{id}/launch")
     public ResponseEntity<CampaignResponse> launch(@PathVariable Long id) {

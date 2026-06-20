@@ -82,15 +82,34 @@ export function useCreateCustomer() {
   });
 }
 
+export function useImportCustomers() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return api.post<{ imported: number }>("/api/customers/import", formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", "dashboard"] });
+    },
+  });
+}
+
 // =====================================================================
 // Segments
 // =====================================================================
 
-export function useSegments(params: { page?: number; size?: number } = {}) {
-  const { page = 0, size = 20 } = params;
+export function useSegments(params: { page?: number; size?: number; search?: string } = {}) {
+  const { page = 0, size = 20, search } = params;
   return useQuery({
-    queryKey: ["segments", { page, size }],
-    queryFn: () => api.get<PagedResponse<Segment>>("/api/segments", { page, size }),
+    queryKey: ["segments", { page, size, search }],
+    queryFn: () =>
+      search && search.trim().length > 0
+        ? api.get<PagedResponse<Segment>>("/api/segments/search", { query: search, page, size })
+        : api.get<PagedResponse<Segment>>("/api/segments", { page, size }),
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -123,11 +142,15 @@ export function useCreateSegment() {
 // Campaigns
 // =====================================================================
 
-export function useCampaigns(params: { page?: number; size?: number } = {}) {
-  const { page = 0, size = 20 } = params;
+export function useCampaigns(params: { page?: number; size?: number; search?: string } = {}) {
+  const { page = 0, size = 20, search } = params;
   return useQuery({
-    queryKey: ["campaigns", { page, size }],
-    queryFn: () => api.get<PagedResponse<Campaign>>("/api/campaigns", { page, size }),
+    queryKey: ["campaigns", { page, size, search }],
+    queryFn: () =>
+      search && search.trim().length > 0
+        ? api.get<PagedResponse<Campaign>>("/api/campaigns/search", { query: search, page, size })
+        : api.get<PagedResponse<Campaign>>("/api/campaigns", { page, size }),
+    placeholderData: (prev) => prev,
   });
 }
 

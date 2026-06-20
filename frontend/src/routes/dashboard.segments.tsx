@@ -46,6 +46,8 @@ function Segments() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [aiNotice, setAiNotice] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
 
   const preview = useSegmentPreview();
   const createSegment = useCreateSegment();
@@ -55,7 +57,7 @@ function Segments() {
     isLoading: segmentsLoading,
     isError: segmentsError,
     refetch: refetchSegments,
-  } = useSegments({ size: 8 });
+  } = useSegments({ size: 8, search });
 
   const rules: SegmentRuleGroup = { operator: "AND", conditions };
 
@@ -337,16 +339,26 @@ function Segments() {
 
       {/* Saved segments */}
       <div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-display text-lg font-semibold">Saved segments</h3>
-          {segmentsError && (
-            <button
-              onClick={() => refetchSegments()}
-              className="text-xs text-muted-foreground underline"
-            >
-              Retry
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            <form onSubmit={(e) => { e.preventDefault(); setSearch(searchInput); }} className="relative">
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search segments…"
+                className="w-48 rounded-lg bg-secondary/60 py-1.5 pl-3 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary"
+              />
+            </form>
+            {segmentsError && (
+              <button
+                onClick={() => refetchSegments()}
+                className="text-xs text-muted-foreground underline"
+              >
+                Retry
+              </button>
+            )}
+          </div>
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
           {segmentsLoading ? (

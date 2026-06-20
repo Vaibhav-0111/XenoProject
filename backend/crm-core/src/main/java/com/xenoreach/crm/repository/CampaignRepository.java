@@ -8,5 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CampaignRepository extends JpaRepository<Campaign, Long> {
     Page<Campaign> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Page<Campaign> findByNameContainingIgnoreCase(String name, Pageable pageable);
     long countByStatus(CampaignStatus status);
 }

@@ -72,6 +72,17 @@ public class CampaignServiceImpl implements CampaignService {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Campaign> result = campaignRepository.findAll(pageable);
 
+        return toPagedResponse(result);
+    }
+
+    @Override
+    public PagedResponse<CampaignResponse> search(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Campaign> result = campaignRepository.findByNameContainingIgnoreCase(query, pageable);
+        return toPagedResponse(result);
+    }
+
+    private PagedResponse<CampaignResponse> toPagedResponse(Page<Campaign> result) {
         return PagedResponse.<CampaignResponse>builder()
                 .content(result.getContent().stream().map(campaignMapper::toResponse).toList())
                 .page(result.getNumber())

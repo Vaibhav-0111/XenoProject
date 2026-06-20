@@ -8,5 +8,6 @@ public interface CampaignService {
     CampaignResponse create(CampaignRequest request, Long userId);
     CampaignResponse getById(Long id);
     PagedResponse<CampaignResponse> list(int page, int size);
+    PagedResponse<CampaignResponse> search(String query, int page, int size);
     CampaignResponse launch(Long id);
 }
