@@ -73,7 +73,7 @@ The frontend is built using React and Vite, making Vercel the optimal hosting pl
    - **Framework Preset:** Vite
    - **Root Directory:** `frontend` (click "Edit" next to root directory and select the frontend folder)
    - **Build Command:** `npm run build` or `bun run build`
-   - **Output Directory:** `dist`
+   - **Output Directory:** *[Leave this blank/default! Do not set it to `dist`]*
 5. Expand the **Environment Variables** section and add:
    - `VITE_API_BASE_URL` = *[The CRM Core URL generated in Step 2.2, e.g. https://crm-core-production.up.railway.app]*
    - (Optional) Add your Firebase variables if you use Google Auth: `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_PROJECT_ID`, etc.
