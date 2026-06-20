@@ -17,6 +17,8 @@ out/
 .vinxi/
 .tanstack/
 .nitro/
+.vercel/
+**/target/
 
 # Logs
 logs/
