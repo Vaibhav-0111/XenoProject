@@ -19,6 +19,7 @@ public class CampaignMapper {
                 .cta(campaign.getCta())
                 .status(campaign.getStatus().name())
                 .audienceSize(campaign.getSegment().getAudienceSize())
+                .scheduledFor(campaign.getScheduledFor())
                 .launchedAt(campaign.getLaunchedAt())
                 .createdAt(campaign.getCreatedAt())
                 .build();

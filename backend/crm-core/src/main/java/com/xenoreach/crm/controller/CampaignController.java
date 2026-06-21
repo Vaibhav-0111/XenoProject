@@ -1,6 +1,7 @@
 package com.xenoreach.crm.controller;
 
 import com.xenoreach.crm.dto.request.CampaignRequest;
+import com.xenoreach.crm.dto.response.CampaignDeliveryStats;
 import com.xenoreach.crm.dto.response.CampaignResponse;
 import com.xenoreach.crm.dto.response.PagedResponse;
 import com.xenoreach.crm.security.UserPrincipal;
@@ -47,6 +48,12 @@ public class CampaignController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(campaignService.search(query, page, size));
+    }
+
+    @Operation(summary = "Get live delivery stats for a campaign (sent, delivered, opened, etc.)")
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<CampaignDeliveryStats> getStats(@PathVariable Long id) {
+        return ResponseEntity.ok(campaignService.getDeliveryStats(id));
     }
 
     @Operation(summary = "Launch a campaign -- resolves the audience and dispatches communications via the Channel Simulator")

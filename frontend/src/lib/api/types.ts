@@ -2,7 +2,7 @@
 // Keep in sync with crm-core/src/main/java/com/xenoreach/crm/dto/**
 
 export type Channel = "WHATSAPP" | "SMS" | "EMAIL" | "RCS";
-export type CampaignStatus = "DRAFT" | "RUNNING" | "COMPLETED";
+export type CampaignStatus = "DRAFT" | "SCHEDULED" | "RUNNING" | "COMPLETED";
 export type CommunicationStatus =
   | "PENDING"
   | "SENT"
@@ -118,6 +118,7 @@ export interface Campaign {
   cta?: string | null;
   status: CampaignStatus;
   audienceSize: number;
+  scheduledFor?: string | null;
   launchedAt?: string | null;
   createdAt: string;
 }
@@ -125,6 +126,39 @@ export interface Campaign {
 export interface CampaignRequest {
   name: string;
   segmentId: number;
+  channel: Channel;
+  subject?: string;
+  message: string;
+  cta?: string;
+  scheduledFor?: string;
+}
+
+export interface CampaignDeliveryStats {
+  campaignId: number;
+  campaignName: string;
+  status: string;
+  total: number;
+  sent: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  failed: number;
+  deliveryRate: number;
+  openRate: number;
+}
+
+export interface CampaignTemplate {
+  id: number;
+  name: string;
+  channel: Channel;
+  subject?: string | null;
+  message: string;
+  cta?: string | null;
+  createdAt: string;
+}
+
+export interface CampaignTemplateRequest {
+  name: string;
   channel: Channel;
   subject?: string;
   message: string;

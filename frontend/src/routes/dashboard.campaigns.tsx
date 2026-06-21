@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { AlertCircle, ExternalLink, Megaphone, Rocket, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle, Calendar, Clock, ExternalLink, FileText, Megaphone, Rocket, Save, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useOrbState } from "@/components/OrbStateContext";
@@ -11,11 +11,15 @@ import { ApiError } from "@/lib/api/client";
 import {
   useAiCampaign,
   useCampaigns,
+  useCampaignStats,
   useCreateCampaign,
+  useCreateTemplate,
+  useDeleteTemplate,
   useLaunchCampaign,
   useSegments,
+  useTemplates,
 } from "@/lib/api/queries";
-import type { Campaign, Channel } from "@/lib/api/types";
+import type { Campaign, CampaignTemplate, Channel } from "@/lib/api/types";
 
 /**
  * Build a WhatsApp Web / wa.me link with a pre-filled message.
@@ -66,6 +70,12 @@ function Campaigns() {
   const [cta, setCta] = useState("");
   const [channel, setChannel] = useState<Channel>("WHATSAPP");
   const [reasoning, setReasoning] = useState<string | null>(null);
+  const [scheduledFor, setScheduledFor] = useState("");
+  const [showTemplates, setShowTemplates] = useState(false);
+
+  const { data: templates } = useTemplates();
+  const createTemplate = useCreateTemplate();
+  const deleteTemplate = useDeleteTemplate();
 
   useEffect(() => {
     if (initialSegmentId) setSegmentId(initialSegmentId);
@@ -111,6 +121,7 @@ function Campaigns() {
     setCta("");
     setReasoning(null);
     setGoal("");
+    setScheduledFor("");
   };
 
   const handleCreate = (launchAfter: boolean) => {
@@ -131,11 +142,16 @@ function Campaigns() {
         subject: subject.trim() || undefined,
         message: message.trim(),
         cta: cta.trim() || undefined,
+        scheduledFor: scheduledFor || undefined,
       },
       {
         onSuccess: (campaign) => {
           if (!launchAfter) {
-            toast.success(`Campaign "${campaign.name}" saved as draft`);
+            if (scheduledFor) {
+              toast.success(`Campaign "${campaign.name}" scheduled for ${new Date(scheduledFor).toLocaleString()}`);
+            } else {
+              toast.success(`Campaign "${campaign.name}" saved as draft`);
+            }
             resetForm();
             return;
           }
@@ -289,27 +305,127 @@ function Campaigns() {
             </div>
           </div>
 
-          <div className="flex gap-2 pt-2">
+          {/* Step 5: Schedule */}
+          <div>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5" /> 5. Schedule (optional)
+            </div>
+            <div className="mt-2">
+              <input
+                type="datetime-local"
+                value={scheduledFor}
+                onChange={(e) => setScheduledFor(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+                className="rounded-xl bg-secondary/40 px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+              />
+              {scheduledFor && (
+                <button
+                  onClick={() => setScheduledFor("")}
+                  className="ml-2 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Clear
+                </button>
+              )}
+              {scheduledFor && (
+                <p className="mt-1 text-[11px] text-cyan">
+                  <Clock className="inline h-3 w-3 mr-1" />
+                  Will auto-launch at {new Date(scheduledFor).toLocaleString()}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-2">
             <MotionButton
               variant="outline"
               onClick={() => handleCreate(false)}
               disabled={createCampaign.isPending}
             >
-              Save as draft
-            </MotionButton>
-            <MotionButton
-              onClick={() => handleCreate(true)}
-              disabled={createCampaign.isPending || launchCampaign.isPending}
-            >
-              {launchCampaign.isPending ? (
-                "Launching…"
+              {scheduledFor ? (
+                <><Calendar className="h-3.5 w-3.5" /> Schedule</>
               ) : (
-                <>
-                  <Rocket className="h-3.5 w-3.5" /> Create & Launch
-                </>
+                "Save as draft"
               )}
             </MotionButton>
+            {!scheduledFor && (
+              <MotionButton
+                onClick={() => handleCreate(true)}
+                disabled={createCampaign.isPending || launchCampaign.isPending}
+              >
+                {launchCampaign.isPending ? (
+                  "Launching…"
+                ) : (
+                  <>
+                    <Rocket className="h-3.5 w-3.5" /> Create & Launch
+                  </>
+                )}
+              </MotionButton>
+            )}
+            <MotionButton
+              variant="outline"
+              onClick={() => {
+                if (!message.trim()) { toast.error("Write a message first."); return; }
+                createTemplate.mutate(
+                  { name: name.trim() || "Untitled Template", channel, subject: subject.trim() || undefined, message: message.trim(), cta: cta.trim() || undefined },
+                  { onSuccess: () => toast.success("Template saved!") }
+                );
+              }}
+              disabled={createTemplate.isPending}
+            >
+              <Save className="h-3.5 w-3.5" /> Save Template
+            </MotionButton>
+            <MotionButton
+              variant="outline"
+              onClick={() => setShowTemplates(!showTemplates)}
+            >
+              <FileText className="h-3.5 w-3.5" /> {showTemplates ? "Hide" : "Load"} Templates
+            </MotionButton>
           </div>
+
+          {/* Templates panel */}
+          <AnimatePresence>
+            {showTemplates && templates && templates.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-xl border border-border/60 bg-card/30 p-3 space-y-2">
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Saved Templates</div>
+                  {templates.map((t: CampaignTemplate) => (
+                    <div
+                      key={t.id}
+                      className="group flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2 text-xs cursor-pointer hover:bg-secondary/50 transition-colors"
+                      onClick={() => {
+                        setChannel(t.channel);
+                        setSubject(t.subject || "");
+                        setMessage(t.message);
+                        setCta(t.cta || "");
+                        setName(t.name);
+                        setShowTemplates(false);
+                        toast.success(`Loaded template "${t.name}"`);
+                      }}
+                    >
+                      <div>
+                        <span className="font-medium">{t.name}</span>
+                        <span className="ml-2 text-muted-foreground">{t.channel}</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTemplate.mutate(t.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Preview */}
@@ -440,49 +556,103 @@ function CampaignRow({
   onLaunch: () => void;
   launching: boolean;
 }) {
+  const isRunning = campaign.status === "RUNNING";
+  const { data: stats } = useCampaignStats(campaign.id, isRunning);
+
+  // Toast on delivery milestones
+  useEffect(() => {
+    if (!stats || !isRunning) return;
+    if (stats.total > 0 && stats.delivered + stats.opened + stats.clicked >= stats.total) {
+      toast.success(
+        `Campaign "${stats.campaignName}": ${stats.deliveryRate}% delivered, ${stats.openRate}% opened`,
+        { id: `campaign-done-${campaign.id}` }
+      );
+    }
+  }, [stats, isRunning, campaign.id]);
+
   return (
-    <AnimatedTableRow index={index}>
-      <td className="px-5 py-3 font-medium">{campaign.name}</td>
-      <td className="px-5 py-3 text-muted-foreground">{campaign.segmentName}</td>
-      <td className="px-5 py-3 text-muted-foreground">{campaign.channel}</td>
-      <td className="px-5 py-3 text-right tabular-nums">
-        {campaign.audienceSize.toLocaleString()}
-      </td>
-      <td className="px-5 py-3 text-right">
-        <StatusBadge status={campaign.status} />
-      </td>
-      <td className="px-5 py-3 text-right">
-        {campaign.status === "DRAFT" ? (
-          <button
-            onClick={onLaunch}
-            disabled={launching}
-            className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] hover:bg-secondary/70 disabled:opacity-50"
-          >
-            {launching ? "Launching…" : "Launch"}
-          </button>
-        ) : (
-          <div className="flex items-center justify-end gap-2">
-            {campaign.channel === "WHATSAPP" && (
-              <button
-                onClick={() => openWhatsApp(campaign.message, campaign.cta)}
-                className="inline-flex items-center gap-1 rounded-lg bg-[#25D366]/15 px-2.5 py-1 text-[11px] text-[#25D366] hover:bg-[#25D366]/25 transition-colors"
-                title="Open in WhatsApp"
-              >
-                <WhatsAppIcon />
-                Send
-              </button>
-            )}
-            <Link
-              to="/dashboard/analytics"
-              search={{ campaignId: campaign.id } as Record<string, unknown>}
-              className="text-[11px] text-cyan hover:underline"
+    <>
+      <AnimatedTableRow index={index}>
+        <td className="px-5 py-3">
+          <div className="font-medium">{campaign.name}</div>
+          {campaign.scheduledFor && campaign.status === "SCHEDULED" && (
+            <div className="mt-0.5 flex items-center gap-1 text-[10px] text-cyan">
+              <Clock className="h-3 w-3" />
+              {new Date(campaign.scheduledFor).toLocaleString()}
+            </div>
+          )}
+        </td>
+        <td className="px-5 py-3 text-muted-foreground">{campaign.segmentName}</td>
+        <td className="px-5 py-3 text-muted-foreground">{campaign.channel}</td>
+        <td className="px-5 py-3 text-right tabular-nums">
+          {campaign.audienceSize.toLocaleString()}
+        </td>
+        <td className="px-5 py-3 text-right">
+          <StatusBadge status={campaign.status} />
+        </td>
+        <td className="px-5 py-3 text-right">
+          {campaign.status === "DRAFT" || campaign.status === "SCHEDULED" ? (
+            <button
+              onClick={onLaunch}
+              disabled={launching}
+              className="rounded-lg bg-secondary px-2.5 py-1 text-[11px] hover:bg-secondary/70 disabled:opacity-50"
             >
-              View analytics
-            </Link>
-          </div>
-        )}
-      </td>
-    </AnimatedTableRow>
+              {launching ? "Launching…" : "Launch Now"}
+            </button>
+          ) : (
+            <div className="flex items-center justify-end gap-2">
+              {campaign.channel === "WHATSAPP" && (
+                <button
+                  onClick={() => openWhatsApp(campaign.message, campaign.cta)}
+                  className="inline-flex items-center gap-1 rounded-lg bg-[#25D366]/15 px-2.5 py-1 text-[11px] text-[#25D366] hover:bg-[#25D366]/25 transition-colors"
+                  title="Open in WhatsApp"
+                >
+                  <WhatsAppIcon />
+                  Send
+                </button>
+              )}
+              <Link
+                to="/dashboard/analytics"
+                search={{ campaignId: campaign.id } as Record<string, unknown>}
+                className="text-[11px] text-cyan hover:underline"
+              >
+                View analytics
+              </Link>
+            </div>
+          )}
+        </td>
+      </AnimatedTableRow>
+      {/* Live delivery tracker bar for RUNNING campaigns */}
+      {isRunning && stats && stats.total > 0 && (
+        <tr>
+          <td colSpan={6} className="px-5 pb-3">
+            <div className="rounded-lg bg-secondary/30 p-3">
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1.5">
+                <span>Delivery Progress</span>
+                <span className="tabular-nums">
+                  {stats.delivered + stats.opened + stats.clicked}/{stats.total} delivered · {stats.openRate}% opened
+                </span>
+              </div>
+              <div className="flex h-2 w-full overflow-hidden rounded-full bg-secondary/50">
+                <motion.div
+                  className="rounded-full bg-gradient-to-r from-cyan to-mint"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(stats.deliveryRate, 100)}%` }}
+                  transition={{ duration: 0.5, ease: "easeOut" }}
+                />
+              </div>
+              <div className="mt-1.5 flex gap-4 text-[10px]">
+                <span className="text-cyan">Sent {stats.sent}</span>
+                <span className="text-mint">Delivered {stats.delivered}</span>
+                <span className="text-violet">Opened {stats.opened}</span>
+                <span className="text-pink">Clicked {stats.clicked}</span>
+                {stats.failed > 0 && <span className="text-destructive">Failed {stats.failed}</span>}
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -490,9 +660,11 @@ function StatusBadge({ status }: { status: string }) {
   const cls =
     status === "RUNNING"
       ? "bg-mint/10 text-mint"
-      : status === "DRAFT"
-        ? "bg-cyan/10 text-cyan"
-        : "bg-muted-foreground/10 text-muted-foreground";
+      : status === "SCHEDULED"
+        ? "bg-violet/10 text-violet"
+        : status === "DRAFT"
+          ? "bg-cyan/10 text-cyan"
+          : "bg-muted-foreground/10 text-muted-foreground";
   return <span className={`rounded-full px-2 py-0.5 text-[10px] ${cls}`}>{status}</span>;
 }
 
@@ -503,3 +675,4 @@ function WhatsAppIcon() {
     </svg>
   );
 }
+

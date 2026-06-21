@@ -6,7 +6,10 @@ import type {
   AiSegmentResponse,
   Campaign,
   CampaignAnalytics,
+  CampaignDeliveryStats,
   CampaignRequest,
+  CampaignTemplate,
+  CampaignTemplateRequest,
   Customer,
   CustomerRequest,
   DashboardAnalytics,
@@ -180,6 +183,47 @@ export function useLaunchCampaign() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}
+
+export function useCampaignStats(id: number | undefined, enabled = false) {
+  return useQuery({
+    queryKey: ["campaigns", id, "stats"],
+    queryFn: () => api.get<CampaignDeliveryStats>(`/api/campaigns/${id}/stats`),
+    enabled: !!id && enabled,
+    refetchInterval: enabled ? 3000 : false,
+  });
+}
+
+// =====================================================================
+// Campaign Templates
+// =====================================================================
+
+export function useTemplates() {
+  return useQuery({
+    queryKey: ["templates"],
+    queryFn: () => api.get<CampaignTemplate[]>("/api/templates"),
+  });
+}
+
+export function useCreateTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CampaignTemplateRequest) =>
+      api.post<CampaignTemplate>("/api/templates", payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
+    },
+  });
+}
+
+export function useDeleteTemplate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/api/templates/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
     },
   });
 }

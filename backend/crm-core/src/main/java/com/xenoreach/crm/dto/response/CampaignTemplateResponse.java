@@ -10,18 +10,12 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-public class CampaignResponse {
+public class CampaignTemplateResponse {
     private Long id;
     private String name;
-    private Long segmentId;
-    private String segmentName;
     private Channel channel;
     private String subject;
     private String message;
     private String cta;
-    private String status;
-    private Integer audienceSize;
-    private LocalDateTime scheduledFor;
-    private LocalDateTime launchedAt;
     private LocalDateTime createdAt;
 }

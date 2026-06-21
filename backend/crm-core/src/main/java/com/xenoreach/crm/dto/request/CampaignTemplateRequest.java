@@ -7,13 +7,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class CampaignRequest {
+public class CampaignTemplateRequest {
 
     @NotBlank
     private String name;
-
-    @NotNull
-    private Long segmentId;
 
     @NotNull
     private Channel channel;
@@ -24,6 +21,4 @@ public class CampaignRequest {
     private String message;
 
     private String cta;
-
-    private String scheduledFor;  // ISO-8601 datetime string, e.g. "2026-07-01T10:00:00"
 }

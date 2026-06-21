@@ -3,6 +3,7 @@ package com.xenoreach.crm.service.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xenoreach.crm.dto.request.CampaignRequest;
+import com.xenoreach.crm.dto.response.CampaignDeliveryStats;
 import com.xenoreach.crm.dto.response.CampaignResponse;
 import com.xenoreach.crm.dto.response.PagedResponse;
 import com.xenoreach.crm.entity.*;
@@ -47,6 +48,13 @@ public class CampaignServiceImpl implements CampaignService {
     public CampaignResponse create(CampaignRequest request, Long userId) {
         Segment segment = segmentService.getEntityById(request.getSegmentId());
 
+        LocalDateTime scheduledFor = null;
+        CampaignStatus initialStatus = CampaignStatus.DRAFT;
+        if (request.getScheduledFor() != null && !request.getScheduledFor().isBlank()) {
+            scheduledFor = LocalDateTime.parse(request.getScheduledFor());
+            initialStatus = CampaignStatus.SCHEDULED;
+        }
+
         Campaign campaign = Campaign.builder()
                 .name(request.getName())
                 .segment(segment)
@@ -54,7 +62,8 @@ public class CampaignServiceImpl implements CampaignService {
                 .subject(request.getSubject())
                 .message(request.getMessage())
                 .cta(request.getCta())
-                .status(CampaignStatus.DRAFT)
+                .status(initialStatus)
+                .scheduledFor(scheduledFor)
                 .createdBy(userId)
                 .build();
 
@@ -180,5 +189,35 @@ public class CampaignServiceImpl implements CampaignService {
     private Campaign findEntity(Long id) {
         return campaignRepository.findById(id)
                 .orElseThrow(() -> ResourceNotFoundException.of("Campaign", id));
+    }
+
+    @Override
+    public CampaignDeliveryStats getDeliveryStats(Long id) {
+        Campaign campaign = findEntity(id);
+
+        long total = communicationRepository.countByCampaignId(id);
+        long sent = communicationRepository.countByCampaignIdAndStatus(id, CommunicationStatus.SENT);
+        long delivered = communicationRepository.countByCampaignIdAndStatus(id, CommunicationStatus.DELIVERED);
+        long opened = communicationRepository.countByCampaignIdAndStatus(id, CommunicationStatus.OPENED)
+                + communicationRepository.countByCampaignIdAndStatus(id, CommunicationStatus.READ);
+        long clicked = communicationRepository.countByCampaignIdAndStatus(id, CommunicationStatus.CLICKED);
+        long failed = communicationRepository.countByCampaignIdAndStatus(id, CommunicationStatus.FAILED);
+
+        double deliveryRate = total > 0 ? (double) (delivered + opened + clicked) / total * 100 : 0;
+        double openRate = total > 0 ? (double) (opened + clicked) / total * 100 : 0;
+
+        return CampaignDeliveryStats.builder()
+                .campaignId(id)
+                .campaignName(campaign.getName())
+                .status(campaign.getStatus().name())
+                .total(total)
+                .sent(sent)
+                .delivered(delivered)
+                .opened(opened)
+                .clicked(clicked)
+                .failed(failed)
+                .deliveryRate(Math.round(deliveryRate * 100.0) / 100.0)
+                .openRate(Math.round(openRate * 100.0) / 100.0)
+                .build();
     }
 }
