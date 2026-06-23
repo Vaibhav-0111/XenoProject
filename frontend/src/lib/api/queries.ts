@@ -12,6 +12,7 @@ import type {
   CampaignTemplateRequest,
   Customer,
   CustomerRequest,
+  CustomerTimelineResponse,
   DashboardAnalytics,
   OrderResponse,
   PagedResponse,
@@ -20,6 +21,7 @@ import type {
   SegmentRequest,
   SegmentRuleGroup,
 } from "./types";
+
 
 // =====================================================================
 // Analytics
@@ -249,3 +251,16 @@ export function useAiCommand() {
     mutationFn: (prompt: string) => api.post<AiCommandResponse>("/api/ai/command", { prompt }),
   });
 }
+
+// =====================================================================
+// Customer Timeline
+// =====================================================================
+
+export function useCustomerTimeline(customerId: number | undefined) {
+  return useQuery({
+    queryKey: ["customers", customerId, "timeline"],
+    queryFn: () => api.get<CustomerTimelineResponse>(`/api/customers/${customerId}/timeline`),
+    enabled: !!customerId,
+  });
+}
+

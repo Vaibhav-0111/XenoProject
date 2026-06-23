@@ -2,6 +2,7 @@ package com.xenoreach.crm.controller;
 
 import com.xenoreach.crm.dto.request.CustomerRequest;
 import com.xenoreach.crm.dto.response.CustomerResponse;
+import com.xenoreach.crm.dto.response.CustomerTimelineResponse;
 import com.xenoreach.crm.dto.response.PagedResponse;
 import com.xenoreach.crm.service.CustomerService;
 import com.xenoreach.crm.service.CsvImportService;
@@ -62,6 +63,12 @@ public class CustomerController {
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getById(id));
+    }
+
+    @Operation(summary = "Get customer activity timeline (campaigns, deliveries, orders)")
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<CustomerTimelineResponse> getTimeline(@PathVariable Long id) {
+        return ResponseEntity.ok(customerService.getTimeline(id));
     }
 
     @PutMapping("/{id}")

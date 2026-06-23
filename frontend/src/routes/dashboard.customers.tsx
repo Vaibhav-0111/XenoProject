@@ -1,6 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { AlertCircle, Plus, Search, Upload, Users } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Eye,
+  Mail,
+  MessageSquare,
+  MousePointerClick,
+  Plus,
+  Search,
+  Send,
+  ShoppingBag,
+  Upload,
+  Users,
+  X,
+  XCircle,
+  Zap,
+} from "lucide-react";
 import { useMemo, useState, useRef, type FormEvent } from "react";
 import { toast } from "sonner";
 import { MotionButton } from "@/components/motion/MotionButton";
@@ -15,8 +33,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ApiError } from "@/lib/api/client";
-import { useCreateCustomer, useCustomers, useImportCustomers } from "@/lib/api/queries";
-import type { Customer, CustomerRequest } from "@/lib/api/types";
+import { useCreateCustomer, useCustomers, useCustomerTimeline, useImportCustomers } from "@/lib/api/queries";
+import type { Customer, CustomerRequest, TimelineEntry } from "@/lib/api/types";
 import type { ReactNode } from "react";
 
 export const Route = createFileRoute("/dashboard/customers")({
@@ -46,11 +64,47 @@ function daysAgo(dateStr?: string | null) {
   return `${days}d`;
 }
 
+const TIMELINE_ICONS: Record<string, typeof Send> = {
+  CAMPAIGN_SENT: Send,
+  DELIVERED: CheckCircle2,
+  OPENED: Eye,
+  CLICKED: MousePointerClick,
+  FAILED: XCircle,
+  CONVERTED: Zap,
+  ORDER: ShoppingBag,
+};
+
+const TIMELINE_COLORS: Record<string, string> = {
+  CAMPAIGN_SENT: "text-cyan border-cyan/30 bg-cyan/10",
+  DELIVERED: "text-emerald-400 border-emerald-400/30 bg-emerald-400/10",
+  OPENED: "text-violet border-violet/30 bg-violet/10",
+  CLICKED: "text-pink border-pink/30 bg-pink/10",
+  FAILED: "text-destructive border-destructive/30 bg-destructive/10",
+  CONVERTED: "text-mint border-mint/30 bg-mint/10",
+  ORDER: "text-amber-400 border-amber-400/30 bg-amber-400/10",
+};
+
+function formatTimelineDate(dateStr: string) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
 function Customers() {
   const [page, setPage] = useState(0);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const importCustomers = useImportCustomers();
@@ -92,6 +146,8 @@ function Customers() {
     setPage(0);
     setSearch(searchInput.trim());
   };
+
+  const selectedCustomer = data?.content.find((c) => c.id === selectedCustomerId);
 
   return (
     <div className="space-y-6">
@@ -168,126 +224,291 @@ function Customers() {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-2xl glass">
-        <table className="w-full text-sm">
-          <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="px-5 py-3 text-left">Name</th>
-              <th className="px-5 py-3 text-left">City</th>
-              <th className="px-5 py-3 text-right">Spend</th>
-              <th className="px-5 py-3 text-right">Last order</th>
-              <th className="px-5 py-3 text-left">Tier</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i} className="border-t border-border/30">
-                  <td className="px-5 py-3" colSpan={5}>
-                    <Skeleton className="h-8 w-full" />
+      <div className="flex gap-4">
+        {/* Customer Table */}
+        <div className={`overflow-hidden rounded-2xl glass transition-all duration-300 ${selectedCustomerId ? "flex-1 min-w-0" : "w-full"}`}>
+          <table className="w-full text-sm">
+            <thead className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-5 py-3 text-left">Name</th>
+                <th className="px-5 py-3 text-left">City</th>
+                <th className="px-5 py-3 text-right">Spend</th>
+                <th className="px-5 py-3 text-right">Last order</th>
+                <th className="px-5 py-3 text-left">Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="border-t border-border/30">
+                    <td className="px-5 py-3" colSpan={5}>
+                      <Skeleton className="h-8 w-full" />
+                    </td>
+                  </tr>
+                ))
+              ) : !data || data.content.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center">
+                    <Users className="mx-auto h-6 w-6 text-muted-foreground" />
+                    <div className="mt-3 text-sm font-medium">
+                      {search ? "No customers match your search" : "No customers yet"}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {search
+                        ? "Try a different name, email, or phone number."
+                        : "Add your first customer to start building segments and campaigns."}
+                    </p>
+                    {!search && (
+                      <div className="mt-4 flex justify-center gap-2">
+                        <MotionButton 
+                          variant="outline" 
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={importCustomers.isPending}
+                        >
+                          <Upload className="h-3.5 w-3.5" /> Import CSV
+                        </MotionButton>
+                        <MotionButton onClick={() => setDialogOpen(true)}>
+                          <Plus className="h-3.5 w-3.5" /> Add customer
+                        </MotionButton>
+                      </div>
+                    )}
                   </td>
                 </tr>
-              ))
-            ) : !data || data.content.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="px-5 py-12 text-center">
-                  <Users className="mx-auto h-6 w-6 text-muted-foreground" />
-                  <div className="mt-3 text-sm font-medium">
-                    {search ? "No customers match your search" : "No customers yet"}
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {search
-                      ? "Try a different name, email, or phone number."
-                      : "Add your first customer to start building segments and campaigns."}
-                  </p>
-                  {!search && (
-                    <div className="mt-4 flex justify-center gap-2">
-                      <MotionButton 
-                        variant="outline" 
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={importCustomers.isPending}
-                      >
-                        <Upload className="h-3.5 w-3.5" /> Import CSV
-                      </MotionButton>
-                      <MotionButton onClick={() => setDialogOpen(true)}>
-                        <Plus className="h-3.5 w-3.5" /> Add customer
-                      </MotionButton>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ) : (
-              data.content.map((c, i) => {
-                const tier = tierFor(c);
-                return (
-                  <motion.tr
-                    key={c.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.04 }}
-                    className="border-t border-border/30 hover:bg-secondary/30"
-                  >
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-8 w-8 place-items-center rounded-full bg-aurora text-[11px] font-semibold text-background">
-                          {c.name
-                            .split(" ")
-                            .map((s) => s[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
+              ) : (
+                data.content.map((c, i) => {
+                  const tier = tierFor(c);
+                  const isSelected = selectedCustomerId === c.id;
+                  return (
+                    <motion.tr
+                      key={c.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.04 }}
+                      onClick={() => setSelectedCustomerId(isSelected ? undefined : c.id)}
+                      className={`border-t border-border/30 cursor-pointer transition-colors ${
+                        isSelected
+                          ? "bg-primary/5 ring-1 ring-inset ring-primary/20"
+                          : "hover:bg-secondary/30"
+                      }`}
+                    >
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="grid h-8 w-8 place-items-center rounded-full bg-aurora text-[11px] font-semibold text-background">
+                            {c.name
+                              .split(" ")
+                              .map((s) => s[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-medium">{c.name}</div>
+                            <div className="text-[11px] text-muted-foreground">{c.email}</div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium">{c.name}</div>
-                          <div className="text-[11px] text-muted-foreground">{c.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-muted-foreground">{c.city || "—"}</td>
-                    <td className="px-5 py-3 text-right tabular-nums">
-                      ₹{c.totalSpend.toLocaleString()}
-                    </td>
-                    <td className="px-5 py-3 text-right text-muted-foreground">
-                      {daysAgo(c.lastOrderDate)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] ${tier.cls}`}>
-                        {tier.label}
-                      </span>
-                    </td>
-                  </motion.tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      </td>
+                      <td className="px-5 py-3 text-muted-foreground">{c.city || "—"}</td>
+                      <td className="px-5 py-3 text-right tabular-nums">
+                        ₹{c.totalSpend.toLocaleString()}
+                      </td>
+                      <td className="px-5 py-3 text-right text-muted-foreground">
+                        {daysAgo(c.lastOrderDate)}
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] ${tier.cls}`}>
+                          {tier.label}
+                        </span>
+                      </td>
+                    </motion.tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
 
-        {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border/30 px-5 py-3 text-xs text-muted-foreground">
-            <span>
-              Page {data.page + 1} of {data.totalPages}
-              {isFetching && " · refreshing…"}
-            </span>
-            <div className="flex gap-2">
-              <button
-                disabled={data.page === 0}
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="rounded-md px-2 py-1 hover:bg-secondary disabled:opacity-40"
-              >
-                Previous
-              </button>
-              <button
-                disabled={data.last}
-                onClick={() => setPage((p) => p + 1)}
-                className="rounded-md px-2 py-1 hover:bg-secondary disabled:opacity-40"
-              >
-                Next
-              </button>
+          {data && data.totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-border/30 px-5 py-3 text-xs text-muted-foreground">
+              <span>
+                Page {data.page + 1} of {data.totalPages}
+                {isFetching && " · refreshing…"}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  disabled={data.page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  className="rounded-md px-2 py-1 hover:bg-secondary disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <button
+                  disabled={data.last}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="rounded-md px-2 py-1 hover:bg-secondary disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Timeline Slide Panel */}
+        <AnimatePresence>
+          {selectedCustomerId && selectedCustomer && (
+            <motion.div
+              key="timeline-panel"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 380, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="shrink-0 overflow-hidden"
+            >
+              <div className="h-full w-[380px] rounded-2xl glass overflow-y-auto max-h-[calc(100vh-220px)]">
+                {/* Header */}
+                <div className="sticky top-0 z-10 glass-strong px-5 py-4 border-b border-border/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-full bg-aurora text-xs font-bold text-background">
+                        {selectedCustomer.name
+                          .split(" ")
+                          .map((s) => s[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="font-display font-semibold text-sm">{selectedCustomer.name}</div>
+                        <div className="text-[11px] text-muted-foreground">{selectedCustomer.email}</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setSelectedCustomerId(undefined)}
+                      className="grid h-7 w-7 place-items-center rounded-lg hover:bg-secondary text-muted-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <div className="rounded-lg bg-secondary/60 px-2.5 py-1 text-[10px]">
+                      <span className="text-muted-foreground">Spend </span>
+                      <span className="font-semibold tabular-nums">₹{selectedCustomer.totalSpend.toLocaleString()}</span>
+                    </div>
+                    {selectedCustomer.city && (
+                      <div className="rounded-lg bg-secondary/60 px-2.5 py-1 text-[10px]">
+                        <span className="text-muted-foreground">{selectedCustomer.city}</span>
+                      </div>
+                    )}
+                    <div className={`rounded-lg px-2.5 py-1 text-[10px] ${tierFor(selectedCustomer).cls}`}>
+                      {tierFor(selectedCustomer).label}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Timeline */}
+                <div className="px-5 py-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs uppercase tracking-[0.15em] text-muted-foreground font-medium">Activity Timeline</span>
+                  </div>
+                  <TimelineContent customerId={selectedCustomerId} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+function TimelineContent({ customerId }: { customerId: number }) {
+  const { data, isLoading, isError } = useCustomerTimeline(customerId);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex gap-3">
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-40" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+        Failed to load timeline.
+      </div>
+    );
+  }
+
+  if (!data || data.timeline.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <MessageSquare className="mx-auto h-5 w-5 text-muted-foreground" />
+        <div className="mt-2 text-xs text-muted-foreground">
+          No activity yet. This customer hasn't been part of any campaigns or placed orders.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      {/* Vertical timeline line */}
+      <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border/50" />
+
+      <div className="space-y-1">
+        {data.timeline.map((entry, i) => (
+          <TimelineEntryCard key={`${entry.type}-${entry.occurredAt}-${i}`} entry={entry} index={i} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TimelineEntryCard({ entry, index }: { entry: TimelineEntry; index: number }) {
+  const Icon = TIMELINE_ICONS[entry.type] || Mail;
+  const colorClass = TIMELINE_COLORS[entry.type] || "text-muted-foreground border-border bg-secondary/50";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.3 }}
+      className="relative flex gap-3 py-2 group"
+    >
+      {/* Icon dot */}
+      <div
+        className={`relative z-10 grid h-[30px] w-[30px] shrink-0 place-items-center rounded-full border ${colorClass} transition-transform duration-200 group-hover:scale-110`}
+      >
+        <Icon className="h-3.5 w-3.5" />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pt-0.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-medium truncate">{entry.title}</span>
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0">
+            {formatTimelineDate(entry.occurredAt)}
+          </span>
+        </div>
+        <p className="mt-0.5 text-[11px] text-muted-foreground leading-relaxed truncate">
+          {entry.description}
+        </p>
+        {entry.channel && (
+          <span className="mt-1 inline-block rounded-md bg-secondary/60 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+            {entry.channel}
+          </span>
+        )}
+      </div>
+    </motion.div>
   );
 }
 

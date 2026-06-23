@@ -35,4 +35,6 @@ public interface CommunicationRepository extends JpaRepository<Communication, Lo
         CommunicationStatus getStatus();
         long getCnt();
     }
+
+    List<Communication> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
 }

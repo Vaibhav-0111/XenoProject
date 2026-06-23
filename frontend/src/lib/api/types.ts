@@ -246,3 +246,23 @@ export interface AiCommandResponse {
   recommendedChannel: string;
   summary: string;
 }
+
+// ---- Customer Timeline ----
+export interface TimelineEntry {
+  type: "CAMPAIGN_SENT" | "DELIVERED" | "OPENED" | "CLICKED" | "FAILED" | "CONVERTED" | "ORDER";
+  title: string;
+  description: string;
+  channel?: string | null;
+  amount?: number | null;
+  occurredAt: string;
+  campaignId?: number | null;
+  campaignName?: string | null;
+}
+
+export interface CustomerTimelineResponse {
+  customerId: number;
+  customerName: string;
+  email: string;
+  timeline: TimelineEntry[];
+}
+
