@@ -18,6 +18,7 @@ import {
   X,
   XCircle,
   Zap,
+  RefreshCw
 } from "lucide-react";
 import { useMemo, useState, useRef, type FormEvent } from "react";
 import { toast } from "sonner";
@@ -33,7 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ApiError } from "@/lib/api/client";
-import { useCreateCustomer, useCustomers, useCustomerTimeline, useImportCustomers } from "@/lib/api/queries";
+import { useCreateCustomer, useCustomers, useCustomerTimeline, useImportCustomers, useImportGoogleSheets } from "@/lib/api/queries";
 import type { Customer, CustomerRequest, TimelineEntry } from "@/lib/api/types";
 import type { ReactNode } from "react";
 
@@ -106,23 +107,36 @@ function Customers() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | undefined>();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState("");
 
   const importCustomers = useImportCustomers();
+  const importSheets = useImportGoogleSheets();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    toast.loading("Importing customers...", { id: "import" });
-    importCustomers.mutate(file, {
-      onSuccess: (res) => {
-        toast.success(`Imported ${res.imported} customers successfully!`, { id: "import" });
-        if (fileInputRef.current) fileInputRef.current.value = "";
+
+    toast.promise(importCustomers.mutateAsync(file), {
+      loading: "Importing customers...",
+      success: (res) => `Successfully imported ${res.imported} customers!`,
+      error: (err) => err.message || "Failed to import customers",
+    });
+
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleSheetSync = () => {
+    if (!sheetUrl) return;
+    toast.promise(importSheets.mutateAsync(sheetUrl), {
+      loading: "Syncing with Google Sheets...",
+      success: (res) => {
+        setSheetOpen(false);
+        setSheetUrl("");
+        return `Successfully synced ${res.imported} customers!`;
       },
-      onError: (err) => {
-        toast.error(err instanceof ApiError ? err.message : "Failed to import customers", { id: "import" });
-        if (fileInputRef.current) fileInputRef.current.value = "";
-      }
+      error: (err) => err.message || "Failed to sync with Google Sheets",
     });
   };
 
@@ -171,21 +185,53 @@ function Customers() {
               className="w-56 rounded-lg bg-secondary/60 py-2 pl-8 pr-3 text-xs outline-none ring-1 ring-transparent placeholder:text-muted-foreground/60 focus:ring-primary"
             />
           </form>
-          <input 
-            type="file" 
-            accept=".csv" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            className="hidden" 
-          />
-          <MotionButton 
-            variant="outline" 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={importCustomers.isPending}
-          >
-            <Upload className="h-3.5 w-3.5" /> 
-            {importCustomers.isPending ? "Importing…" : "Import CSV"}
-          </MotionButton>
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".csv"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+            <Dialog open={sheetOpen} onOpenChange={setSheetOpen}>
+              <DialogTrigger asChild>
+                <MotionButton variant="outline" className="gap-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 border-emerald-500/20">
+                  <RefreshCw className="h-3.5 w-3.5" /> Sheets Sync
+                </MotionButton>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Sync with Google Sheets</DialogTitle>
+                  <DialogDescription>
+                    Paste a public Google Sheets link. The sheet must have headers like "email", "name", "phone", "city", "age", "totalSpend".
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <input
+                    value={sheetUrl}
+                    onChange={(e) => setSheetUrl(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    className="w-full rounded-xl bg-secondary/40 px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <DialogFooter>
+                  <MotionButton variant="outline" onClick={() => setSheetOpen(false)}>
+                    Cancel
+                  </MotionButton>
+                  <MotionButton onClick={handleSheetSync} disabled={!sheetUrl || importSheets.isPending}>
+                    {importSheets.isPending ? "Syncing..." : "Sync Customers"}
+                  </MotionButton>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <MotionButton
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importCustomers.isPending}
+            >
+              {importCustomers.isPending ? "Importing..." : <><Upload className="mr-2 h-4 w-4" /> Import CSV</>}
+            </MotionButton>
+          </div>
           <AddCustomerDialog open={dialogOpen} onOpenChange={setDialogOpen} />
         </div>
       </div>

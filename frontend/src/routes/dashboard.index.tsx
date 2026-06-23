@@ -18,6 +18,10 @@ import { AnimatedTableRow } from "@/components/motion/AnimatedTableRow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth";
 import { useDashboardAnalytics } from "@/lib/api/queries";
+import { useDashboardWebSocket } from "@/lib/api/useWebSocket";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useCallback } from "react";
 import type { ReactNode } from "react";
 import type { ChannelPerformance } from "@/lib/api/types";
 
@@ -34,7 +38,21 @@ function greeting() {
 
 function Overview() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboardAnalytics();
+
+  const handleLiveEvent = useCallback((event: any) => {
+    // Show a toast and refetch data
+    const action = event.eventType.toLowerCase();
+    toast.success(`Live event: ${event.customerName} just ${action} your campaign "${event.campaignName}"`, {
+      icon: <Sparkles className="h-4 w-4 text-cyan" />,
+    });
+    
+    // Invalidate dashboard analytics so it refetches in the background
+    queryClient.invalidateQueries({ queryKey: ["analytics", "dashboard"] });
+  }, [queryClient]);
+
+  const { connected } = useDashboardWebSocket(handleLiveEvent);
 
   const firstName = (user?.name || user?.email || "there").split(/[\s@]+/)[0];
 
@@ -85,9 +103,15 @@ function Overview() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
             Mission Control
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400 normal-case tracking-normal">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
-            </span>
+            {connected ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400 normal-case tracking-normal">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted-foreground/10 px-2 py-0.5 text-[10px] font-medium text-muted-foreground normal-case tracking-normal">
+                Connecting...
+              </span>
+            )}
           </div>
           <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">
             {greeting()}, {firstName}.

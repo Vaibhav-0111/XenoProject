@@ -12,10 +12,12 @@ import com.xenoreach.crm.repository.EventRepository;
 import com.xenoreach.crm.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -25,6 +27,7 @@ public class EventServiceImpl implements EventService {
     private final CommunicationRepository communicationRepository;
     private final EventRepository eventRepository;
     private final ObjectMapper objectMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     @Transactional
@@ -88,6 +91,19 @@ public class EventServiceImpl implements EventService {
         }
 
         communicationRepository.save(communication);
+
+        // Broadcast real-time event to the dashboard
+        try {
+            messagingTemplate.convertAndSend("/topic/dashboard", Map.of(
+                    "type", "NEW_EVENT",
+                    "eventType", event.getType().name(),
+                    "customerName", communication.getCustomer().getName(),
+                    "campaignName", communication.getCampaign().getName(),
+                    "channel", communication.getChannel().name()
+            ));
+        } catch (Exception e) {
+            log.warn("Failed to broadcast real-time event", e);
+        }
     }
 
     private Communication resolveCommunication(EventCallbackRequest request) {

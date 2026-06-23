@@ -90,11 +90,31 @@ export function useCreateCustomer() {
 export function useImportCustomers() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
-      return api.post<{ imported: number }>("/api/customers/import", formData);
+      const res = await fetch(`${api.baseUrl}/api/customers/import`, {
+        method: "POST",
+        body: formData,
+        headers: api.headers(), // Note: fetch doesn't want Content-Type for FormData
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: "Import failed" }));
+        throw new ApiError(error.message, res.status, error.fieldErrors);
+      }
+      return res.json() as Promise<{ imported: number }>;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", "dashboard"] });
+    },
+  });
+}
+
+export function useImportGoogleSheets() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (url: string) => api.post<{ imported: number }>("/api/customers/import/sheets", { url }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["customers"] });
       queryClient.invalidateQueries({ queryKey: ["analytics", "dashboard"] });

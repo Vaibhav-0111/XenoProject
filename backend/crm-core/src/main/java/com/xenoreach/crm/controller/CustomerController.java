@@ -6,6 +6,7 @@ import com.xenoreach.crm.dto.response.CustomerTimelineResponse;
 import com.xenoreach.crm.dto.response.PagedResponse;
 import com.xenoreach.crm.service.CustomerService;
 import com.xenoreach.crm.service.CsvImportService;
+import com.xenoreach.crm.service.GoogleSheetsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -24,6 +25,7 @@ public class CustomerController {
 
     private final CustomerService customerService;
     private final CsvImportService csvImportService;
+    private final GoogleSheetsService googleSheetsService;
 
     @PostMapping
     public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerRequest request) {
@@ -38,6 +40,21 @@ public class CustomerController {
             return ResponseEntity.ok(Map.of("imported", count));
         } catch (Exception e) {
             throw new RuntimeException("Failed to import CSV: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Import customers from a Google Sheets URL")
+    @PostMapping("/import/sheets")
+    public ResponseEntity<Map<String, Integer>> importGoogleSheets(@RequestBody Map<String, String> payload) {
+        String url = payload.get("url");
+        if (url == null || url.isBlank()) {
+            throw new RuntimeException("Google Sheets URL is required");
+        }
+        try {
+            int count = googleSheetsService.importFromUrl(url);
+            return ResponseEntity.ok(Map.of("imported", count));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to import from Google Sheets: " + e.getMessage());
         }
     }
 
