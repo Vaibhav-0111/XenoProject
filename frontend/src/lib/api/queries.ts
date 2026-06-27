@@ -13,6 +13,7 @@ import type {
   Customer,
   CustomerRequest,
   CustomerTimelineResponse,
+  CustomerRiskResponse,
   DashboardAnalytics,
   OrderResponse,
   PagedResponse,
@@ -280,6 +281,14 @@ export function useCustomerTimeline(customerId: number | undefined) {
   return useQuery({
     queryKey: ["customers", customerId, "timeline"],
     queryFn: () => api.get<CustomerTimelineResponse>(`/api/customers/${customerId}/timeline`),
+    enabled: !!customerId,
+  });
+}
+
+export function useCustomerRisk(customerId: number | undefined) {
+  return useQuery({
+    queryKey: ["customers", customerId, "risk"],
+    queryFn: () => api.get<CustomerRiskResponse>(`/api/customers/${customerId}/risk`),
     enabled: !!customerId,
   });
 }

@@ -34,7 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ApiError } from "@/lib/api/client";
-import { useCreateCustomer, useCustomers, useCustomerTimeline, useImportCustomers, useImportGoogleSheets } from "@/lib/api/queries";
+import { useCreateCustomer, useCustomers, useCustomerTimeline, useImportCustomers, useImportGoogleSheets, useCustomerRisk } from "@/lib/api/queries";
 import type { Customer, CustomerRequest, TimelineEntry } from "@/lib/api/types";
 import type { ReactNode } from "react";
 
@@ -469,6 +469,7 @@ function Customers() {
 
 function TimelineContent({ customerId }: { customerId: number }) {
   const { data, isLoading, isError } = useCustomerTimeline(customerId);
+  const { data: riskData, isLoading: riskLoading } = useCustomerRisk(customerId);
 
   if (isLoading) {
     return (
@@ -494,28 +495,53 @@ function TimelineContent({ customerId }: { customerId: number }) {
     );
   }
 
-  if (!data || data.timeline.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <MessageSquare className="mx-auto h-5 w-5 text-muted-foreground" />
-        <div className="mt-2 text-xs text-muted-foreground">
-          No activity yet. This customer hasn't been part of any campaigns or placed orders.
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="relative">
-      {/* Vertical timeline line */}
-      <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border/50" />
-
-      <div className="space-y-1">
-        {data.timeline.map((entry, i) => (
-          <TimelineEntryCard key={`${entry.type}-${entry.occurredAt}-${i}`} entry={entry} index={i} />
-        ))}
+    <>
+      {/* Risk Score Panel */}
+      <div className="mb-6 rounded-xl border border-border/60 bg-card/40 p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Zap className="h-3.5 w-3.5 text-pink" />
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">AI Risk Analysis</span>
+        </div>
+        {riskLoading ? (
+           <Skeleton className="h-10 w-full" />
+        ) : riskData ? (
+           <div className="flex items-center gap-4">
+             <div className="relative shrink-0 flex items-center justify-center h-12 w-12 rounded-full border-4 shadow-sm" style={{ borderColor: riskData.riskLevel === 'HIGH' ? '#f43f5e' : riskData.riskLevel === 'MEDIUM' ? '#f59e0b' : '#10b981' }}>
+               <span className="text-sm font-bold">{riskData.riskScore}</span>
+             </div>
+             <div>
+               <div className="text-xs font-semibold">
+                 {riskData.riskLevel === 'HIGH' ? <span className="text-destructive">High Churn Risk</span> : riskData.riskLevel === 'MEDIUM' ? <span className="text-amber-500">Moderate Churn Risk</span> : <span className="text-emerald-500">Low Churn Risk</span>}
+               </div>
+               <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{riskData.riskReasoning}</div>
+             </div>
+           </div>
+        ) : (
+           <div className="text-xs text-muted-foreground">Risk data unavailable</div>
+        )}
       </div>
-    </div>
+
+      {!data || data.timeline.length === 0 ? (
+        <div className="text-center py-8">
+          <MessageSquare className="mx-auto h-5 w-5 text-muted-foreground" />
+          <div className="mt-2 text-xs text-muted-foreground">
+            No activity yet. This customer hasn't been part of any campaigns or placed orders.
+          </div>
+        </div>
+      ) : (
+        <div className="relative">
+          {/* Vertical timeline line */}
+          <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border/50" />
+
+          <div className="space-y-1">
+            {data.timeline.map((entry, i) => (
+              <TimelineEntryCard key={`${entry.type}-${entry.occurredAt}-${i}`} entry={entry} index={i} />
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

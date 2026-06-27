@@ -116,6 +116,10 @@ export interface Campaign {
   subject?: string | null;
   message: string;
   cta?: string | null;
+  abTestingEnabled?: boolean;
+  variantBSubject?: string | null;
+  variantBMessage?: string | null;
+  variantBCta?: string | null;
   status: CampaignStatus;
   audienceSize: number;
   scheduledFor?: string | null;
@@ -130,6 +134,10 @@ export interface CampaignRequest {
   subject?: string;
   message: string;
   cta?: string;
+  abTestingEnabled?: boolean;
+  variantBSubject?: string;
+  variantBMessage?: string;
+  variantBCta?: string;
   scheduledFor?: string;
 }
 
@@ -223,6 +231,13 @@ export interface CampaignAnalytics {
 }
 
 // ---- AI ----
+export interface CustomerRiskResponse {
+  customerId: number;
+  riskScore: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  riskReasoning: string;
+}
+
 export interface AiSegmentResponse {
   segmentName: string;
   description: string;

@@ -34,6 +34,19 @@ public class Campaign {
 
     private String cta;
 
+    @Column(name = "ab_testing_enabled")
+    @Builder.Default
+    private boolean abTestingEnabled = false;
+
+    @Column(name = "variant_b_subject")
+    private String variantBSubject;
+
+    @Column(name = "variant_b_message", columnDefinition = "TEXT")
+    private String variantBMessage;
+
+    @Column(name = "variant_b_cta")
+    private String variantBCta;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private CampaignStatus status = CampaignStatus.DRAFT;

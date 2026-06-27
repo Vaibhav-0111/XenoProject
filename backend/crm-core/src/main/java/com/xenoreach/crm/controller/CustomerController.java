@@ -7,6 +7,7 @@ import com.xenoreach.crm.dto.response.PagedResponse;
 import com.xenoreach.crm.service.CustomerService;
 import com.xenoreach.crm.service.CsvImportService;
 import com.xenoreach.crm.service.GoogleSheetsService;
+import com.xenoreach.crm.service.AiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ public class CustomerController {
     private final CustomerService customerService;
     private final CsvImportService csvImportService;
     private final GoogleSheetsService googleSheetsService;
+    private final AiService aiService;
 
     @PostMapping
     public ResponseEntity<CustomerResponse> create(@Valid @RequestBody CustomerRequest request) {
@@ -86,6 +88,12 @@ public class CustomerController {
     @GetMapping("/{id}/timeline")
     public ResponseEntity<CustomerTimelineResponse> getTimeline(@PathVariable Long id) {
         return ResponseEntity.ok(customerService.getTimeline(id));
+    }
+
+    @Operation(summary = "Get AI-calculated churn risk for a customer")
+    @GetMapping("/{id}/risk")
+    public ResponseEntity<com.xenoreach.crm.dto.response.CustomerRiskResponse> getRisk(@PathVariable Long id) {
+        return ResponseEntity.ok(aiService.calculateCustomerRisk(id));
     }
 
     @PutMapping("/{id}")

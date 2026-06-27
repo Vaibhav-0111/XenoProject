@@ -17,6 +17,12 @@ import com.xenoreach.crm.service.SegmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import com.xenoreach.crm.repository.CustomerRepository;
+import com.xenoreach.crm.entity.Customer;
+import com.xenoreach.crm.dto.response.CustomerRiskResponse;
+import com.xenoreach.crm.exception.ResourceNotFoundException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,6 +35,7 @@ public class AiServiceImpl implements AiService {
     private final AiClient aiClient;
     private final SegmentService segmentService;
     private final ObjectMapper objectMapper;
+    private final CustomerRepository customerRepository;
 
     private static final String SEGMENT_SYSTEM_PROMPT = """
             You are the AI segmentation engine for XenoReach AI, a marketing CRM.
@@ -57,6 +64,17 @@ public class AiServiceImpl implements AiService {
               "cta": "short call-to-action text",
               "recommendedChannel": "WHATSAPP" | "SMS" | "EMAIL" | "RCS",
               "channelReasoning": "one sentence explaining why this channel fits the goal"
+            }
+            Only output valid JSON, no markdown, no commentary.
+            """;
+
+    private static final String RISK_SYSTEM_PROMPT = """
+            You are the AI customer analyst for XenoReach AI.
+            Given customer data (total spend, inactive days), output a JSON object with this shape:
+            {
+              "riskScore": <integer 0-100, where 100 is highly likely to churn>,
+              "riskLevel": "LOW" | "MEDIUM" | "HIGH",
+              "riskReasoning": "one short sentence explaining the score"
             }
             Only output valid JSON, no markdown, no commentary.
             """;
@@ -114,6 +132,44 @@ public class AiServiceImpl implements AiService {
                 .recommendedChannel(campaign.getRecommendedChannel().name())
                 .summary(summary)
                 .build();
+    }
+
+    @Override
+    public CustomerRiskResponse calculateCustomerRisk(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Customer", customerId));
+
+        long inactiveDays = 0;
+        if (customer.getLastOrderDate() != null) {
+            inactiveDays = ChronoUnit.DAYS.between(customer.getLastOrderDate().toLocalDate(), LocalDate.now());
+        }
+
+        String prompt = String.format("Customer %s has spent ₹%.2f and has been inactive for %d days.", 
+                                      customer.getName(), customer.getTotalSpend(), inactiveDays);
+
+        try {
+            String raw = aiClient.complete(RISK_SYSTEM_PROMPT, prompt);
+            JsonNode root = objectMapper.readTree(extractJson(raw));
+            return CustomerRiskResponse.builder()
+                    .customerId(customerId)
+                    .riskScore(root.path("riskScore").asInt(50))
+                    .riskLevel(root.path("riskLevel").asText("MEDIUM"))
+                    .riskReasoning(root.path("riskReasoning").asText("Calculated based on recent activity."))
+                    .build();
+        } catch (Exception e) {
+            log.info("Falling back to heuristic risk generation for customer {}", customerId);
+            int riskScore = (int) Math.min(100, (inactiveDays * 0.8));
+            if (customer.getTotalSpend() > 5000) {
+                riskScore = Math.max(0, riskScore - 20); // Premium customers are slightly less likely to churn immediately
+            }
+            String level = riskScore > 70 ? "HIGH" : (riskScore > 40 ? "MEDIUM" : "LOW");
+            return CustomerRiskResponse.builder()
+                    .customerId(customerId)
+                    .riskScore(riskScore)
+                    .riskLevel(level)
+                    .riskReasoning("Based on " + inactiveDays + " days of inactivity and total spend.")
+                    .build();
+        }
     }
 
     // =====================================================================

@@ -25,5 +25,13 @@ public class CampaignRequest {
 
     private String cta;
 
+    private boolean abTestingEnabled;
+
+    private String variantBSubject;
+
+    private String variantBMessage;
+
+    private String variantBCta;
+
     private String scheduledFor;  // ISO-8601 datetime string, e.g. "2026-07-01T10:00:00"
 }

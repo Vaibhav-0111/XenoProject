@@ -62,6 +62,10 @@ public class CampaignServiceImpl implements CampaignService {
                 .subject(request.getSubject())
                 .message(request.getMessage())
                 .cta(request.getCta())
+                .abTestingEnabled(request.isAbTestingEnabled())
+                .variantBSubject(request.getVariantBSubject())
+                .variantBMessage(request.getVariantBMessage())
+                .variantBCta(request.getVariantBCta())
                 .status(initialStatus)
                 .scheduledFor(scheduledFor)
                 .createdBy(userId)
@@ -134,12 +138,27 @@ public class CampaignServiceImpl implements CampaignService {
             throw new BadRequestException("Cannot launch campaign: target segment has no matching customers");
         }
 
+        boolean useVariantB = false;
         for (Customer customer : audience) {
+            String messageTemplate = campaign.getMessage();
+            String cta = campaign.getCta();
+            
+            if (campaign.isAbTestingEnabled() && useVariantB) {
+                messageTemplate = campaign.getVariantBMessage();
+                cta = campaign.getVariantBCta();
+            }
+            useVariantB = !useVariantB;
+
+            String fullMessage = messageTemplate;
+            if (cta != null && !cta.isBlank()) {
+                fullMessage += "\n\n" + cta;
+            }
+
             Communication communication = Communication.builder()
                     .campaign(campaign)
                     .customer(customer)
                     .channel(campaign.getChannel())
-                    .message(personalize(campaign.getMessage(), customer))
+                    .message(personalize(fullMessage, customer))
                     .status(CommunicationStatus.PENDING)
                     .build();
 

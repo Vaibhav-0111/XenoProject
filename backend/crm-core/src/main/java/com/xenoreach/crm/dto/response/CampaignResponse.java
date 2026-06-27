@@ -19,6 +19,10 @@ public class CampaignResponse {
     private String subject;
     private String message;
     private String cta;
+    private boolean abTestingEnabled;
+    private String variantBSubject;
+    private String variantBMessage;
+    private String variantBCta;
     private String status;
     private Integer audienceSize;
     private LocalDateTime scheduledFor;

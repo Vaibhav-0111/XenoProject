@@ -7,6 +7,7 @@ import { useOrbState } from "@/components/OrbStateContext";
 import { MotionButton } from "@/components/motion/MotionButton";
 import { AnimatedTableRow } from "@/components/motion/AnimatedTableRow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { ApiError } from "@/lib/api/client";
 import {
   useAiCampaign,
@@ -72,6 +73,11 @@ function Campaigns() {
   const [reasoning, setReasoning] = useState<string | null>(null);
   const [scheduledFor, setScheduledFor] = useState("");
   const [showTemplates, setShowTemplates] = useState(false);
+  const [abTestingEnabled, setAbTestingEnabled] = useState(false);
+  const [variantBSubject, setVariantBSubject] = useState("");
+  const [variantBMessage, setVariantBMessage] = useState("");
+  const [variantBCta, setVariantBCta] = useState("");
+  const [previewVariant, setPreviewVariant] = useState<"A" | "B">("A");
 
   const { data: templates } = useTemplates();
   const createTemplate = useCreateTemplate();
@@ -122,6 +128,11 @@ function Campaigns() {
     setReasoning(null);
     setGoal("");
     setScheduledFor("");
+    setAbTestingEnabled(false);
+    setVariantBSubject("");
+    setVariantBMessage("");
+    setVariantBCta("");
+    setPreviewVariant("A");
   };
 
   const handleCreate = (launchAfter: boolean) => {
@@ -143,6 +154,10 @@ function Campaigns() {
         message: message.trim(),
         cta: cta.trim() || undefined,
         scheduledFor: scheduledFor || undefined,
+        abTestingEnabled,
+        variantBSubject: variantBSubject.trim() || undefined,
+        variantBMessage: variantBMessage.trim() || undefined,
+        variantBCta: variantBCta.trim() || undefined,
       },
       {
         onSuccess: (campaign) => {
@@ -283,6 +298,42 @@ function Campaigns() {
               placeholder="Call to action (e.g. Shop Now)"
               className="w-full rounded-xl bg-secondary/40 px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
             />
+            
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-xs uppercase tracking-wider text-muted-foreground">A/B Testing</div>
+              <Switch checked={abTestingEnabled} onCheckedChange={setAbTestingEnabled} />
+            </div>
+            
+            {abTestingEnabled && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-4 p-4 rounded-xl border border-dashed border-border bg-card/50 space-y-3"
+              >
+                <div className="text-xs font-semibold text-cyan mb-2">Variant B (50% of audience)</div>
+                {channel === "EMAIL" && (
+                  <input
+                    value={variantBSubject}
+                    onChange={(e) => setVariantBSubject(e.target.value)}
+                    placeholder="Variant B Subject line"
+                    className="w-full rounded-xl bg-secondary/40 px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                  />
+                )}
+                <textarea
+                  value={variantBMessage}
+                  onChange={(e) => setVariantBMessage(e.target.value)}
+                  placeholder="Variant B Message"
+                  rows={4}
+                  className="w-full resize-none rounded-xl bg-secondary/40 px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                />
+                <input
+                  value={variantBCta}
+                  onChange={(e) => setVariantBCta(e.target.value)}
+                  placeholder="Variant B Call to action"
+                  className="w-full rounded-xl bg-secondary/40 px-3 py-2.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+                />
+              </motion.div>
+            )}
           </div>
 
           {/* Step 4: Channel */}
@@ -434,23 +485,31 @@ function Campaigns() {
           animate={{ opacity: 1, y: 0 }}
           className="rounded-2xl glass-strong p-6"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-mint">Preview</div>
-          <div className="mt-4 rounded-xl border border-border/60 bg-card/40 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-mint">Preview</div>
+            {abTestingEnabled && (
+               <div className="flex gap-1 text-[10px]">
+                 <button onClick={() => setPreviewVariant("A")} className={`px-2 py-1 rounded transition-colors ${previewVariant === "A" ? "bg-mint text-background" : "bg-secondary text-muted-foreground hover:bg-secondary/70"}`}>Variant A</button>
+                 <button onClick={() => setPreviewVariant("B")} className={`px-2 py-1 rounded transition-colors ${previewVariant === "B" ? "bg-mint text-background" : "bg-secondary text-muted-foreground hover:bg-secondary/70"}`}>Variant B</button>
+               </div>
+            )}
+          </div>
+          <div className="rounded-xl border border-border/60 bg-card/40 p-4">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
               {channel}
             </div>
-            {channel === "EMAIL" && subject && (
-              <div className="mt-2 text-sm font-semibold">{subject || "Subject line"}</div>
+            {channel === "EMAIL" && (subject || variantBSubject) && (
+              <div className="mt-2 text-sm font-semibold">{previewVariant === "A" ? (subject || "Subject line") : (variantBSubject || "Variant B Subject")}</div>
             )}
             <p className="mt-2 whitespace-pre-wrap text-sm">
-              {(message || "Your message will appear here…").replace(
+              {((previewVariant === "A" ? message : variantBMessage) || "Your message will appear here…").replace(
                 /\{\{first_name\}\}/g,
                 "Priya",
               )}
             </p>
-            {cta && (
+            {(previewVariant === "A" ? cta : variantBCta) && (
               <div className="mt-3 inline-flex rounded-lg bg-aurora px-3 py-1.5 text-xs font-medium text-background">
-                {cta}
+                {previewVariant === "A" ? cta : variantBCta}
               </div>
             )}
           </div>

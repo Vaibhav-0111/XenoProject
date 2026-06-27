@@ -13,6 +13,7 @@ import {
   Loader2,
   Moon,
   Sun,
+  Settings,
 } from "lucide-react";
 import { useEffect } from "react";
 import { AIOrb } from "@/components/AIOrb";
@@ -63,6 +64,7 @@ const NAV: Array<{ to: string; label: string; icon: typeof Users; exact?: boolea
   { to: "/dashboard/campaigns", label: "Campaigns", icon: Megaphone },
   { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/dashboard/ai", label: "AI Command", icon: Sparkles },
+  { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 function DashboardLayout() {

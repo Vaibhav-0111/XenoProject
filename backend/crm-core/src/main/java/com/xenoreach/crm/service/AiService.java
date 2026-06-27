@@ -11,4 +11,5 @@ public interface AiService {
     AiSegmentResponse generateSegment(AiSegmentRequest request);
     AiCampaignResponse generateCampaign(AiCampaignRequest request);
     AiCommandResponse executeCommand(AiCommandRequest request);
+    com.xenoreach.crm.dto.response.CustomerRiskResponse calculateCustomerRisk(Long customerId);
 }
